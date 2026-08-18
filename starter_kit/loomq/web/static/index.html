@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="LoomQ Lab：用自然语言创建、验证并运行量子电路。">
+    <title>LoomQ Lab · 可验证的量子入口</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#experiment">跳到实验输入</a>
+
+    <header class="site-header shell">
+      <a class="brand" href="#top" aria-label="LoomQ Lab 首页">
+        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="4"></circle>
+          <ellipse cx="24" cy="24" rx="18" ry="7"></ellipse>
+          <ellipse cx="24" cy="24" rx="18" ry="7" transform="rotate(60 24 24)"></ellipse>
+          <ellipse cx="24" cy="24" rx="18" ry="7" transform="rotate(120 24 24)"></ellipse>
+        </svg>
+        <span>LoomQ <b>Lab</b></span>
+      </a>
+      <div class="contract-badge" aria-label="系统状态">
+        <span class="status-dot" aria-hidden="true"></span>
+        合同 v1.0 · 三后端
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero shell" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">VERIFIED QUANTUM ACCESS · 可验证的量子入口</p>
+          <h1 id="page-title">先说你想探索什么。<br>其余交给工具链。</h1>
+          <p class="hero-intro">
+            不必先学 QASM。LoomQ 把一句人话变成量子程序，先验证，再交给真实本地模拟器运行；每一步都留下证据。
+          </p>
+        </div>
+        <aside class="proof-note" aria-label="LoomQ 的证据承诺">
+          <p class="proof-label">PROOF, NOT HYPE</p>
+          <ol>
+            <li><span>01</span>同一份中间表示</li>
+            <li><span>02</span>三种平台语言</li>
+            <li><span>03</span>真实采样结果</li>
+          </ol>
+          <p>界面只展示后端真正返回的 counts。参考模拟器负责验证，不冒充平台运行。</p>
+        </aside>
+      </section>
+
+      <section class="experiment shell" id="experiment" aria-labelledby="experiment-title">
+        <div class="experiment-heading">
+          <div>
+            <p class="section-index">01 / DESCRIBE</p>
+            <h2 id="experiment-title">开始第一次实验</h2>
+          </div>
+          <p>大约 10 秒 · 默认在本机运行 · 不消耗量子真机额度</p>
+        </div>
+
+        <form id="experiment-form" novalidate>
+          <div class="prompt-field">
+            <label for="prompt">你想让量子计算机做什么？</label>
+            <textarea id="prompt" name="prompt" rows="4" maxlength="32768" placeholder="例如：我完全不懂量子，带我做一个最简单的纠缠实验。" required></textarea>
+            <div class="examples" aria-label="可直接尝试的示例">
+              <span>TRY AN EXAMPLE</span>
+              <button type="button" class="example-button" data-example="bell" data-prompt="让两枚量子硬币保持一致">让两枚量子硬币保持一致 <small>本地</small></button>
+              <button type="button" class="example-button" data-example="ghz" data-prompt="制造三个彼此关联的量子比特">制造三个彼此关联的量子比特 <small>本地</small></button>
+              <button type="button" class="example-button" data-prompt="我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。请保持原意并修好它。">修复一段量子程序</button>
+              <button type="button" class="example-button" data-prompt="我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？">帮我选择运行平台</button>
+            </div>
+          </div>
+
+          <div class="run-controls">
+            <div class="control-field">
+              <label for="target">运行后端</label>
+              <select id="target" name="target">
+                <option value="spinq">SpinQ Taurus</option>
+                <option value="originq">OriginQ CPUQVM</option>
+                <option value="braket">AWS Braket Local</option>
+              </select>
+            </div>
+            <div class="control-field">
+              <label for="shots">重复次数</label>
+              <input id="shots" name="shots" type="number" min="1" max="8192" step="1" value="1024" inputmode="numeric">
+            </div>
+            <button class="run-button" id="run-button" type="submit">
+              <span>验证并运行</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </button>
+          </div>
+          <p class="form-status" id="form-status" aria-live="polite">选择本地示例无需模型 Key；自由输入需要配置 LOOMQ_LLM_*。</p>
+        </form>
+
+        <ol class="pipeline" aria-label="实验处理阶段">
+          <li data-stage="understand"><span>01</span><b>理解意图</b><small>自然语言 → 任务</small></li>
+          <li data-stage="compile"><span>02</span><b>编译电路</b><small>QASM → 统一 IR</small></li>
+          <li data-stage="verify"><span>03</span><b>验证程序</b><small>语法 · 门集 · 语义</small></li>
+          <li data-stage="run"><span>04</span><b>真实运行</b><small>SDK → counts</small></li>
+        </ol>
+      </section>
+
+      <section class="workspace shell" id="workspace" aria-labelledby="workspace-title" tabindex="-1" hidden>
+        <header class="workspace-header">
+          <div>
+            <p class="section-index">02 / EVIDENCE</p>
+            <h2 id="workspace-title">实验工作台</h2>
+          </div>
+          <p class="run-meta" id="run-meta"></p>
+        </header>
+
+        <div class="workspace-grid">
+          <article class="panel circuit-panel" id="circuit-panel">
+            <header><span>BUILD</span><h3>电路</h3></header>
+            <div class="circuit-view" id="circuit-view" role="img" aria-label="量子电路图"></div>
+            <p class="panel-note" id="circuit-note"></p>
+          </article>
+
+          <article class="panel verification-panel" id="verification-panel">
+            <header><span>VERIFY</span><h3>证据链</h3></header>
+            <ul class="verification-list" id="verification-list"></ul>
+          </article>
+
+          <article class="panel result-panel" id="result-panel">
+            <header><span>RESULT</span><h3>测量结果</h3></header>
+            <div class="counts-chart" id="counts-chart" aria-hidden="true"></div>
+            <table class="counts-table">
+              <caption>测量状态、次数与占比</caption>
+              <thead><tr><th scope="col">状态</th><th scope="col">次数</th><th scope="col">占比</th></tr></thead>
+              <tbody id="counts-table-body"></tbody>
+            </table>
+          </article>
+
+          <article class="panel explanation-panel" id="explanation-panel">
+            <header><span>UNDERSTAND</span><h3>这意味着什么？</h3></header>
+            <p id="explanation"></p>
+            <div class="recommendation" id="recommendation" hidden></div>
+          </article>
+        </div>
+
+        <details class="qasm-disclosure" id="qasm-disclosure">
+          <summary>查看专业代码 <span>OpenQASM 2.0</span></summary>
+          <pre><code id="qasm-code"></code></pre>
+        </details>
+      </section>
+
+      <section class="meaning shell" aria-labelledby="meaning-title">
+        <p class="section-index">03 / INTERPRET</p>
+        <div class="meaning-grid">
+          <h2 id="meaning-title">这证明了什么，<br>又没有证明什么？</h2>
+          <div>
+            <p id="proof-statement">运行一次实验后，这里会说明结果能够支持的结论。</p>
+            <p class="boundary">模拟器结果可以证明程序与目标分布一致；它不等于量子优势，也不能替代真机噪声证据。LoomQ 会明确保留这条边界。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer shell">
+      <p>LoomQ · 量子接入平权计划</p>
+      <p>一个 parser，一套 IR，三个真实 SDK。</p>
+    </footer>
+  </body>
+</html>

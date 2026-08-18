@@ -9,10 +9,10 @@
 把要申报项目的方框改成 `[x]`，并填写对应内容：
 
 - [ ] L1 真机
-- [ ] L2 交互体验
-- [ ] 工程与产品化
+- [x] L2 交互体验
+- [x] 工程与产品化
 - [ ] 自定义量子 RISC-V Bonus
-- [ ] 新手引导与视觉叙事 Bonus
+- [x] 新手引导与视觉叙事 Bonus
 
 ## L1 真机
 
@@ -43,13 +43,13 @@ evidence/files/spinq-screenshot.png
 请填写：
 
 ```text
-启动界面或 CLI 的命令：[填写]
-测试入口或页面地址：[填写，没有则写“无”]
+启动界面或 CLI 的命令：在 fork 根目录运行 `.venv/bin/python -m starter_kit.loomq.web.server`（Windows 为 `.\.venv\Scripts\python.exe -m starter_kit.loomq.web.server`）
+测试入口或页面地址：`http://127.0.0.1:8765/`
 用于交互体验评测的 3 个用户任务：
-1. [填写]
-2. [填写]
-3. [填写]
-截图或演示视频：[选填，填写仓库内路径或稳定只读链接]
+1. `我完全不懂量子，带我完成一个最简单的纠缠实验。`
+2. `我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。保持原意并修好。`
+3. `我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？`
+截图或演示视频：`evidence/files/loomq-desktop-ghz.png`、`evidence/files/loomq-mobile-bell.png`
 ```
 
 工作人员会在组委会统一模型环境中运行最终代码，测试新手是否看得懂、出错后能否得到有效帮助、结果是否清楚，以及多轮回答是否一致。选手自己的对话截图只用于说明产品流程，不直接证明得分。
@@ -59,10 +59,10 @@ evidence/files/spinq-screenshot.png
 已有内容可以直接引用主 README 或其他项目文档，不必复制到本目录。
 
 ```text
-干净环境中的构建和启动命令：[填写命令或文档路径]
-架构说明：[填写文档路径，或用几句话说明主要模块]
-目标用户和使用场景：[填写]
-完整使用流程：[填写文档、截图或演示路径]
+干净环境中的构建和启动命令：`README.md` 的“5 分钟启动”和“一条命令验证”；Windows `.\starter_kit\scripts\setup.ps1` 后运行 `.\starter_kit\scripts\verify.ps1`
+架构说明：`ARCHITECTURE.md`；一个 parser/typed IR，三个 emitter 和三个真实 SDK runner，独立 verifier 不冒充 target
+目标用户和使用场景：没有量子背景的人文社科学生、设计师、产品经理、艺术创作者与普通 AI 用户，在五分钟内完成第一次可解释、可验证的量子实验
+完整使用流程：`USER_GUIDE.md`、`evidence/files/loomq-desktop-ghz.png`、`evidence/files/loomq-mobile-bell.png`
 ```
 
 工作人员会按最终 commit 实际构建和启动，并检查文档与代码是否一致、产品是否真的降低了量子计算的使用门槛。
@@ -82,10 +82,10 @@ evidence/files/spinq-screenshot.png
 请填写已有材料的路径，不要求为评分另写一套文档：
 
 ```text
-零基础首次运行指南：[填写]
-量子概念解释：[填写]
-结果可视化：[填写]
-错误恢复或无障碍引导：[填写]
+零基础首次运行指南：`USER_GUIDE.md` 的“Offline five-minute path”；Web 首页两个明确标注的本地示例
+量子概念解释：`USER_GUIDE.md` 的“Three ideas you need”与 Web 的“这意味着什么 / 这证明了什么”
+结果可视化：`loomq/web/static/` 中的电路 rails、counts bars 及并列表格；截图见 `evidence/files/`
+错误恢复或无障碍引导：`loomq/web/server.py` 的结构化恢复错误；HTML labels/live region/skip link；键盘焦点进入结果区；reduced-motion 与移动单列 CSS
 ```
 
 以上四项各 1 分。普通项目 README 完整不代表自动获得 Bonus。
