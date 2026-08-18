@@ -61,7 +61,7 @@ class WebAssetContractTests(unittest.TestCase):
         self.assertGreaterEqual(audit.live_regions, 1)
         self.assertGreaterEqual(audit.details_count, 1)
         self.assertEqual(audit.external_resources, [])
-        self.assertIn("让两枚量子硬币保持一致", page_text)
+        self.assertIn("把一句话", page_text)
         self.assertIn("这证明了什么", page_text)
 
     def test_css_contains_responsive_motion_and_touch_guardrails(self):
@@ -69,14 +69,14 @@ class WebAssetContractTests(unittest.TestCase):
 
         self.assertIn("prefers-reduced-motion: reduce", css)
         self.assertIn("max-width: 767px", css)
-        self.assertIn("--color-ink:", css)
-        self.assertIn("--color-primary:", css)
+        self.assertIn("--text-primary:", css)
+        self.assertIn("--border-default:", css)
         self.assertIn("min-height: 44px", css)
 
     def test_javascript_uses_safe_dom_rendering_and_same_origin_api(self):
         script = self.paths["js"].read_text(encoding="utf-8")
 
-        self.assertIn('fetch("/api/experiment"', script)
+        self.assertIn("fetch('/api/experiment'", script)
         self.assertIn("textContent", script)
         self.assertNotIn("innerHTML", script)
         self.assertNotIn("http://", script)
