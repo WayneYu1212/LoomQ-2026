@@ -12,6 +12,7 @@ _PREFIX = "starter_kit." if __package__ == "starter_kit" else ""
 _agent_service = importlib.import_module(_PREFIX + "loomq.agent.service")
 _parser = importlib.import_module(_PREFIX + "loomq.compiler.parser")
 _emitters = importlib.import_module(_PREFIX + "loomq.emitters")
+_hybrid = importlib.import_module(_PREFIX + "loomq.hybrid")
 _runners = importlib.import_module(_PREFIX + "loomq.runners")
 
 SUPPORTED_TARGETS = _emitters.SUPPORTED_TARGETS
@@ -35,7 +36,5 @@ def agent_chat(prompt: str) -> str:
 
 
 def compile_hybrid(hybrid_qasm_str: str) -> Tuple[List[str], str]:
-    """Optional L3 entry point. Return quantum operations and RISC-V assembly."""
-    raise NotImplementedError(
-        "L3 is optional; implement compile_hybrid(hybrid_qasm_str) to enter"
-    )
+    """Compile Hybrid-QASM into ordered quantum operations and stock RISC-V."""
+    return _hybrid.compile_hybrid(hybrid_qasm_str)
