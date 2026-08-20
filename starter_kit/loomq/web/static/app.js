@@ -26,11 +26,14 @@
   var runMeta = document.querySelector('#run-meta');
   var proofStatement = document.querySelector('#proof-statement');
   var pipelineStages = [].slice.call(document.querySelectorAll('.pipeline li'));
-  var exampleButtons = [].slice.call(document.querySelectorAll('.example-button'));
+  var quickActionButtons = [].slice.call(document.querySelectorAll('.quick-action'));
+  var focusBackendAction = document.querySelector('#focus-backend-action');
 
   var selectedExample = null;
   var mcCtx = null;
-  var mcAnimId = 0;
+  var fieldFrameId = 0;
+  var fieldState = 'idle';
+  var fieldRelaxTimer = 0;
 
   function makeEl(tag, cls, text) {
     var el = document.createElement(tag);
@@ -43,144 +46,171 @@
     while (el.firstChild) el.removeChild(el.firstChild);
   }
 
+  /* ---- Quantum Field: a restrained visual representation, not a simulation ---- */
   var particleCanvas = document.querySelector('#particle-canvas');
   var pctx = particleCanvas.getContext('2d');
-  var particles = [];
+  var fieldNodes = [];
   var pointer = { x: -9999, y: -9999 };
-  var isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var isMobile = window.matchMedia('(max-width: 767px)').matches;
+  var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var mobileQuery = window.matchMedia('(max-width: 767px)');
+  var isReduced = motionQuery.matches;
+  var isMobile = mobileQuery.matches;
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  function resizeParticles() {
-    particleCanvas.width = window.innerWidth * DPR;
-    particleCanvas.height = window.innerHeight * DPR;
-    pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    isMobile = window.matchMedia('(max-width: 767px)').matches;
-  }
-
-  function initParticles() {
-    particles = [];
-    var count = isMobile ? 40 : 80;
-    var i;
-    for (i = 0; i < count; i++) {
-      var brightness = Math.random();
-      var alpha;
-      if (brightness < 0.7) alpha = 0.08 + Math.random() * 0.1;
-      else if (brightness < 0.92) alpha = 0.15 + Math.random() * 0.15;
-      else alpha = 0.3 + Math.random() * 0.3;
-      particles.push({
+  function createFieldNodes() {
+    var count = isMobile ? 22 : 38;
+    fieldNodes = [];
+    for (var i = 0; i < count; i++) {
+      fieldNodes.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        r: 0.6 + Math.random() * 1.4,
-        vx: (Math.random() - 0.5) * 0.08,
-        vy: (Math.random() - 0.5) * 0.08,
-        alpha: alpha
+        vx: 0,
+        vy: 0,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.12 + Math.random() * 0.18,
+        kind: i % 3,
+        length: 2.5 + Math.random() * 4.5
       });
     }
   }
 
-  function drawParticles() {
-    if (isReduced) return;
-    pctx.clearRect(0, 0, particleCanvas.width / DPR, particleCanvas.height / DPR);
-    var i;
-    for (i = 0; i < particles.length; i++) {
-      var p = particles[i];
-      var dx = pointer.x - p.x;
-      var dy = pointer.y - p.y;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 150 && dist > 0) {
-        var influence = (1 - dist / 150) * 0.04;
-        var nx = dx / dist;
-        var ny = dy / dist;
-        p.vx += nx * influence;
-        p.vy += ny * influence;
-      }
-      p.vx *= 0.995;
-      p.vy *= 0.995;
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.x < -20) p.x = window.innerWidth + 20;
-      if (p.x > window.innerWidth + 20) p.x = -20;
-      if (p.y < -20) p.y = window.innerHeight + 20;
-      if (p.y > window.innerHeight + 20) p.y = -20;
-      pctx.beginPath();
-      pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      pctx.fillStyle = 'rgba(200,205,215,' + p.alpha.toFixed(2) + ')';
-      pctx.fill();
+  function resizeQuantumField() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    particleCanvas.width = Math.round(window.innerWidth * DPR);
+    particleCanvas.height = Math.round(window.innerHeight * DPR);
+    pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var wasMobile = isMobile;
+    isMobile = mobileQuery.matches;
+    if (!fieldNodes.length || wasMobile !== isMobile) createFieldNodes();
+  }
+
+  function setFieldState(nextState) {
+    fieldState = nextState;
+    clearTimeout(fieldRelaxTimer);
+    if (nextState === 'measurement') {
+      fieldRelaxTimer = setTimeout(function () { fieldState = 'relax'; }, 900);
     }
   }
 
-  function particleLoop() {
-    if (isReduced) return;
-    drawParticles();
-    mcAnimId = requestAnimationFrame(particleLoop);
+  function updateFieldNode(node, time) {
+    var stateForce = fieldState === 'coherent' ? 1.18 : fieldState === 'relax' ? 0.72 : 1;
+    var angle =
+      Math.sin(node.x * 0.0027 + time * 0.00009 + node.phase) * 1.55 +
+      Math.cos(node.y * 0.0031 - time * 0.00007 - node.phase) * 1.25;
+    node.vx += Math.cos(angle) * 0.0018 * stateForce;
+    node.vy += Math.sin(angle) * 0.0018 * stateForce;
+
+    var dx = pointer.x - node.x;
+    var dy = pointer.y - node.y;
+    var distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance > 0 && distance < 160) {
+      var pointerForce = (1 - distance / 160) * 0.0035;
+      node.vx += (-dy / distance) * pointerForce;
+      node.vy += (dx / distance) * pointerForce;
+    }
+
+    node.vx *= 0.986;
+    node.vy *= 0.986;
+    var speed = Math.sqrt(node.vx * node.vx + node.vy * node.vy);
+    if (speed > 0.12) {
+      node.vx = node.vx / speed * 0.12;
+      node.vy = node.vy / speed * 0.12;
+    }
+    node.x += node.vx;
+    node.y += node.vy;
+
+    if (node.x < -24) node.x = window.innerWidth + 24;
+    if (node.x > window.innerWidth + 24) node.x = -24;
+    if (node.y < -24) node.y = window.innerHeight + 24;
+    if (node.y > window.innerHeight + 24) node.y = -24;
   }
 
-  function pauseParticles() {
-    if (mcAnimId) { cancelAnimationFrame(mcAnimId); mcAnimId = 0; }
+  function drawFieldConnections() {
+    var threshold = isMobile ? 118 : 154;
+    for (var i = 0; i < fieldNodes.length; i++) {
+      for (var j = i + 1; j < fieldNodes.length; j++) {
+        if ((i + j) % 4 !== 0) continue;
+        var a = fieldNodes[i];
+        var b = fieldNodes[j];
+        var dx = a.x - b.x;
+        var dy = a.y - b.y;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance >= threshold) continue;
+        var stateAlpha = fieldState === 'measurement' ? 0.04 : 0;
+        var alpha = 0.06 + (1 - distance / threshold) * 0.08 + stateAlpha;
+        pctx.beginPath();
+        pctx.moveTo(a.x, a.y);
+        pctx.lineTo(b.x, b.y);
+        pctx.strokeStyle = 'rgba(205,210,216,' + Math.min(alpha, 0.18).toFixed(3) + ')';
+        pctx.lineWidth = 0.55;
+        pctx.stroke();
+      }
+    }
   }
 
-  function resumeParticles() {
+  function drawFieldNode(node, time) {
+    pctx.fillStyle = 'rgba(215,219,224,' + node.alpha.toFixed(3) + ')';
+    pctx.strokeStyle = pctx.fillStyle;
+    pctx.lineWidth = 0.7;
+    if (node.kind === 0) {
+      pctx.beginPath();
+      pctx.arc(node.x, node.y, 0.75, 0, Math.PI * 2);
+      pctx.fill();
+    } else if (node.kind === 1) {
+      var angle = node.phase + time * 0.00002;
+      var hx = Math.cos(angle) * node.length * 0.5;
+      var hy = Math.sin(angle) * node.length * 0.5;
+      pctx.beginPath();
+      pctx.moveTo(node.x - hx, node.y - hy);
+      pctx.lineTo(node.x + hx, node.y + hy);
+      pctx.stroke();
+    } else {
+      pctx.fillRect(node.x, node.y, 1, 1);
+    }
+  }
+
+  function quantumFieldLoop(time) {
     if (isReduced) return;
-    if (!mcAnimId) mcAnimId = requestAnimationFrame(particleLoop);
+    pctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    fieldNodes.forEach(function (node) { updateFieldNode(node, time); });
+    drawFieldConnections();
+    fieldNodes.forEach(function (node) { drawFieldNode(node, time); });
+    fieldFrameId = requestAnimationFrame(quantumFieldLoop);
+  }
+
+  function pauseQuantumField() {
+    if (fieldFrameId) cancelAnimationFrame(fieldFrameId);
+    fieldFrameId = 0;
+  }
+
+  function resumeQuantumField() {
+    if (!isReduced && !fieldFrameId) fieldFrameId = requestAnimationFrame(quantumFieldLoop);
   }
 
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) pauseParticles();
-    else resumeParticles();
+    if (document.hidden) pauseQuantumField();
+    else resumeQuantumField();
   });
 
-  document.addEventListener('mousemove', function (e) {
-    pointer.x = e.clientX;
-    pointer.y = e.clientY;
+  document.addEventListener('pointermove', function (event) {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
   }, { passive: true });
 
-  document.addEventListener('touchmove', function (e) {
-    if (e.touches.length) {
-      pointer.x = e.touches[0].clientX;
-      pointer.y = e.touches[0].clientY;
+  document.addEventListener('pointerleave', function () {
+    pointer.x = -9999;
+    pointer.y = -9999;
+  });
+
+  motionQuery.addEventListener('change', function (event) {
+    isReduced = event.matches;
+    if (isReduced) {
+      pauseQuantumField();
+      pctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    } else {
+      resumeQuantumField();
     }
-  }, { passive: true });
-
-  var interCanvas = document.querySelector('#interference-layer');
-  var ictx = interCanvas.getContext('2d');
-  var interPhase = 0;
-
-  function resizeInter() {
-    interCanvas.width = window.innerWidth * DPR;
-    interCanvas.height = window.innerHeight * DPR;
-    ictx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  }
-
-  function drawInterference() {
-    if (isReduced) return;
-    ictx.clearRect(0, 0, interCanvas.width / DPR, interCanvas.height / DPR);
-    ictx.strokeStyle = 'rgba(180,188,200,0.035)';
-    ictx.lineWidth = 0.5;
-    var w = window.innerWidth;
-    var h = window.innerHeight;
-    var x, y;
-    for (y = 0; y < h; y += 60) {
-      ictx.beginPath();
-      for (x = 0; x < w; x += 4) {
-        var yy = y + Math.sin((x + interPhase) * 0.008) * 18 + Math.sin((x - interPhase * 0.3) * 0.014) * 10;
-        if (x === 0) ictx.moveTo(x, yy);
-        else ictx.lineTo(x, yy);
-      }
-      ictx.stroke();
-    }
-  }
-
-  function interLoop() {
-    if (isReduced) return;
-    interPhase += 0.12;
-    drawInterference();
-    requestAnimationFrame(interLoop);
-  }
-
-  function showInterference() {
-    interCanvas.classList.add('visible');
-  }
+  });
 
   function initMeasurementCanvas() {
     mcCtx = measurementCanvas.getContext('2d');
@@ -238,11 +268,12 @@
 
   function setBusy(busy) {
     runButton.disabled = busy;
-    runButton.querySelector('span').textContent = busy ? '\u6b63\u5728\u9a8c\u8bc1...' : '\u9a8c\u8bc1\u5e76\u8fd0\u884c';
+    runButton.querySelector('span').textContent = busy ? '\u6b63\u5728\u8fd0\u884c...' : '\u8fd0\u884c\u5b9e\u9a8c';
     formStatus.classList.remove('is-error');
     if (busy) {
       formStatus.textContent = 'LoomQ \u6b63\u5728\u7406\u89e3\u3001\u7f16\u8bd1\u5e76\u8fd0\u884c\uff1b\u6bcf\u4e2a\u901a\u8fc7\u72b6\u6001\u90fd\u6765\u81ea\u8fd4\u56de\u8bc1\u636e\u3002';
       setPipeline('loading');
+      setFieldState('coherent');
     }
   }
 
@@ -320,9 +351,10 @@
 
   function renderRecommendation(data) {
     circuitPanel.hidden = true;
-    verificationPanel.hidden = true;
+    verificationPanel.hidden = false;
     resultPanel.hidden = true;
     qasmDisclosure.hidden = true;
+    verificationList.hidden = true;
     recommendation.hidden = false;
     explanation.hidden = true;
     recommendation.textContent = data.reply;
@@ -339,6 +371,7 @@
       verificationPanel.hidden = false;
       resultPanel.hidden = false;
       qasmDisclosure.hidden = false;
+      verificationList.hidden = false;
       recommendation.hidden = true;
       explanation.hidden = false;
       renderCircuit(data.circuit);
@@ -352,6 +385,7 @@
       proofStatement.textContent = '\u771f\u5b9e\u672c\u5730\u6a21\u62df\u5668\u8fd4\u56de\u7684\u4e3b\u5bfc\u72b6\u6001\u662f ' + leadingText + '\u3002\u8fd9\u652f\u6301\u201c\u7a0b\u5e8f\u5728\u8be5\u65e0\u566a\u58f0\u540e\u7aef\u4ea7\u751f\u4e86\u6240\u793a\u5206\u5e03\u201d\u7684\u7ed3\u8bba\u3002';
     }
     setPipeline('passed');
+    setFieldState('measurement');
     formStatus.textContent = data.mode === 'local_example'
       ? '\u672c\u5730\u793a\u4f8b\u5b8c\u6210\uff1a\u6ca1\u6709\u8c03\u7528 LLM\uff0c\u7535\u8def\u4ecd\u7ecf\u8fc7\u771f\u5b9e SDK\u3002'
       : 'Agent \u5b9e\u9a8c\u5b8c\u6210\uff1a\u6a21\u578b\u4ea7\u7269\u5df2\u901a\u8fc7\u7a0b\u5e8f\u9a8c\u8bc1\u5e76\u7531\u771f\u5b9e SDK \u8fd0\u884c\u3002';
@@ -360,20 +394,26 @@
     }
   }
 
-  exampleButtons.forEach(function (btn) {
+  quickActionButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
+      if (btn === focusBackendAction) {
+        quickActionButtons.forEach(function (button) { button.classList.remove('is-selected'); });
+        targetField.focus();
+        targetField.scrollIntoView({ behavior: isReduced ? 'auto' : 'smooth', block: 'center' });
+        return;
+      }
       promptField.value = btn.dataset.prompt;
       selectedExample = btn.dataset.example || null;
-      exampleButtons.forEach(function (b) { b.classList.toggle('is-selected', b === btn); });
+      quickActionButtons.forEach(function (b) { b.classList.toggle('is-selected', b === btn); });
       promptField.focus();
     });
   });
 
   promptField.addEventListener('input', function () {
-    var sel = exampleButtons.find(function (b) { return b.classList.contains('is-selected'); });
+    var sel = quickActionButtons.find(function (b) { return b.classList.contains('is-selected'); });
     if (!sel || promptField.value !== sel.dataset.prompt) {
       selectedExample = null;
-      exampleButtons.forEach(function (b) { b.classList.remove('is-selected'); });
+      quickActionButtons.forEach(function (b) { b.classList.remove('is-selected'); });
     }
   });
 
@@ -402,6 +442,7 @@
       completed = true;
     }).catch(function (err) {
       setPipeline('');
+      setFieldState('relax');
       formStatus.textContent = '\u672a\u5b8c\u6210\uff1a' + err.message + ' \u8bf7\u68c0\u67e5\u914d\u7f6e\u540e\u91cd\u8bd5\u3002';
       formStatus.classList.add('is-error');
     }).then(function () {
@@ -411,23 +452,16 @@
     });
   });
 
-  resizeParticles();
-  resizeInter();
+  resizeQuantumField();
   initMeasurementCanvas();
-  if (!isReduced) {
-    initParticles();
-    mcAnimId = requestAnimationFrame(particleLoop);
-    requestAnimationFrame(interLoop);
-    setTimeout(showInterference, 1200);
-  }
+  resumeQuantumField();
 
   var resizeTimer = 0;
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
-      resizeParticles();
-      resizeInter();
-      if (!isReduced && particles.length === 0) { initParticles(); resumeParticles(); }
+      resizeQuantumField();
+      resumeQuantumField();
     }, 200);
   });
 

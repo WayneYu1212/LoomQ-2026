@@ -1,5 +1,6 @@
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 import subprocess
 import sys
 import unittest
@@ -18,9 +19,14 @@ class MarkupAudit(HTMLParser):
         self.details_count = 0
         self.external_resources = []
         self.text = []
+        self.ids = set()
+        self.classes = set()
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
+        if attributes.get("id"):
+            self.ids.add(attributes["id"])
+        self.classes.update(attributes.get("class", "").split())
         if tag == "h1":
             self.h1_count += 1
         if tag == "label" and attributes.get("for"):
@@ -81,6 +87,34 @@ class WebAssetContractTests(unittest.TestCase):
         self.assertNotIn("innerHTML", script)
         self.assertNotIn("http://", script)
         self.assertNotIn("https://", script)
+
+    def test_javascript_required_dom_selectors_exist_in_markup(self):
+        audit = MarkupAudit()
+        audit.feed(self.paths["html"].read_text(encoding="utf-8"))
+        script = self.paths["js"].read_text(encoding="utf-8")
+        selectors = re.findall(
+            r"document\.querySelector(?:All)?\(['\"]([.#][A-Za-z0-9_-]+)['\"]\)",
+            script,
+        )
+        missing = []
+        for selector in selectors:
+            collection = audit.ids if selector.startswith("#") else audit.classes
+            if selector[1:] not in collection:
+                missing.append(selector)
+
+        self.assertEqual(missing, [], f"JavaScript references missing DOM selectors: {missing}")
+
+    def test_quantum_field_keeps_v2_motion_and_reduced_motion_contract(self):
+        script = self.paths["js"].read_text(encoding="utf-8")
+
+        self.assertIn("isMobile ? 22 : 38", script)
+        self.assertIn("Math.sin", script)
+        self.assertIn("Math.cos", script)
+        self.assertIn("drawFieldConnections", script)
+        self.assertIn("distance < 160", script)
+        self.assertIn("motionQuery.addEventListener('change'", script)
+        self.assertIn("pauseQuantumField", script)
+        self.assertNotIn("interference-layer", script)
 
     def test_server_module_help_starts_without_runtime_warning(self):
         repository_root = Path(__file__).resolve().parents[2]
