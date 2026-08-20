@@ -1,5 +1,7 @@
 # Final human checklist — genuine QPU evidence
 
+> Current submission work already includes user-supplied genuine SpinQ and OriginQ task exports. The commands below are retained only for rerunning or replacing those jobs; do not spend quota unnecessarily.
+
 Never paste tokens or AWS credentials into chat. Keep them only in your local environment/standard credential store. Run commands from the fork root in Windows PowerShell.
 
 ## Origin Quantum

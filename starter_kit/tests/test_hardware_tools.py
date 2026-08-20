@@ -15,7 +15,14 @@ from starter_kit.hardware.validate_evidence import validate_metadata
 
 
 class HardwareEvidenceFixture:
-    def __init__(self, provider: str, *, job_id: str | None = None, secret: bool = False):
+    def __init__(
+        self,
+        provider: str,
+        *,
+        job_id: str | None = None,
+        secret: bool = False,
+        probability: bool = False,
+    ):
         self.temporary = tempfile.TemporaryDirectory(prefix="TEST-FIXTURE-", dir=EVIDENCE_ROOT)
         root = Path(self.temporary.name)
         self.qasm = root / "bell.qasm"
@@ -38,6 +45,10 @@ class HardwareEvidenceFixture:
             "timestamp": "2026-08-20T08:00:10Z",
             "meta": {"provider": provider, "device": device, "is_hardware": True, "is_mock": False},
         }
+        if probability:
+            result["shots"] = None
+            result.pop("counts")
+            result["probabilities"] = {"00": 0.48, "11": 0.52}
         raw = {"provider_response": {"status": "COMPLETED"}}
         if secret:
             raw["api_key"] = "TEST-FIXTURE-SECRET"
@@ -55,6 +66,10 @@ class HardwareEvidenceFixture:
             "normalized_result_path": self.normalized.relative_to(STARTER_ROOT).as_posix(),
             "test_fixture": True,
         }
+        if probability:
+            metadata["shots"] = None
+            metadata["result_kind"] = "probabilities"
+            metadata["shots_note"] = "TEST/FIXTURE ensemble probability export has no shots"
         self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
 
     def cleanup(self) -> None:
@@ -83,6 +98,15 @@ class EvidenceValidatorTests(unittest.TestCase):
         finally:
             secret.cleanup()
             placeholder.cleanup()
+
+    def test_probability_only_hardware_is_preserved_without_fabricated_shots(self):
+        fixture = HardwareEvidenceFixture("spinq", probability=True)
+        try:
+            result = validate_metadata(fixture.metadata, allow_test_fixture=True)
+            self.assertIsNone(result["shots"])
+            self.assertIn("no shots", result["shots_note"])
+        finally:
+            fixture.cleanup()
 
     def test_finalizer_requires_two_distinct_providers_and_preserves_other_sections(self):
         first = HardwareEvidenceFixture("originq")

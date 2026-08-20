@@ -13,7 +13,7 @@ LoomQ lets people without QASM or quantum-SDK experience describe intent, receiv
 | Engineering | shared typed IR, independent verifier, pinned SDKs, scripts | `scripts/verify.sh` | `ARCHITECTURE.md` |
 | Custom RISC-V +8 | spec + emulator + encoded E2E | `.venv/bin/python -m unittest starter_kit.tests.test_quantum_riscv_extension -v` | `QUANTUM_RISCV_EXTENSION.md` |
 | Newcomer +4 | recommended no-LLM Bell path, readable Web, evidence boundary | start Web and click **第一次实验** | `USER_GUIDE.md`, `evidence/README.md` |
-| L1 hardware +10 | optional genuine OriginQ/AWS jobs | `scripts/hardware_doctor.ps1` | generated only after real jobs |
+| L1 hardware +10 | genuine SpinQ + OriginQ task records | `.venv/bin/python -m starter_kit.hardware.validate_evidence evidence/files/spinq-hardware-metadata.json evidence/files/originq-hardware-metadata.json` | `evidence/HARDWARE_EVIDENCE_SUMMARY.md` |
 
 Windows uses `.\.venv\Scripts\python.exe` in place of `.venv/bin/python`.
 

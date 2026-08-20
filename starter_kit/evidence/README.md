@@ -8,7 +8,7 @@
 
 把要申报项目的方框改成 `[x]`，并填写对应内容：
 
-- [ ] L1 真机
+- [x] L1 真机
 - [x] L2 交互体验
 - [x] 工程与产品化
 - [x] 自定义量子 RISC-V Bonus
@@ -16,29 +16,31 @@
 
 ## L1 真机
 
-真机 readiness 工具已准备：`hardware/originq_real.py`、`hardware/braket_qpu.py`、`hardware/validate_evidence.py`、`hardware/finalize_evidence.py`。在两个真实平台 job 完成前，本节保持未申报；fixture、dry-run 与 simulator 结果会被 finalizer 拒绝。
+平台名称：Origin Quantum Cloud
+设备：Origin Wukong 180-2
+平台 job ID：D0C7F490B43D9B04FDF19ABF3DB8B342
+提交时间：2026-08-20T20:29:51.026+08:00
+完成时间：2026-08-20T21:16:43.073+08:00
+shots：1000
+实际执行的 QASM：`evidence/files/originq-hardware-bell.qasm`
+平台返回的原始结果：`evidence/files/originq-hardware-result.raw.json`
+规范化结果：`evidence/files/originq-hardware-result.normalized.json`
+元数据：`evidence/files/originq-hardware-metadata.json`
+任务页截图：`evidence/files/originq-hardware-task.png`
+真实性边界：该记录来自平台任务页与原始导出文件中的可追溯硬件任务 ID，不是 simulator；组织方仍可登录平台复核。
 
-每个有效真机平台计 5 分，最多两个平台。模拟器不计真机分。每个平台复制并填写一次下面的信息：
-
-```text
-平台名称：[填写]
-平台 job ID：[填写]
-运行时间：[填写，带时区]
-shots：[填写]
-实际执行的 QASM：[填写仓库内路径]
-平台返回的原始结果：[填写仓库内路径]
-任务页截图：[选填，填写仓库内路径]
-```
-
-建议把文件放进 `evidence/files/`，比如：
-
-```text
-evidence/files/spinq-circuit.qasm
-evidence/files/spinq-result.json
-evidence/files/spinq-screenshot.png
-```
-
-工作人员会核对 job ID、运行时间、电路、shots 和原始结果。截图只能辅助说明，不能代替 job ID 和原始结果。
+平台名称：SpinQ Cloud
+设备：SpinQ Cloud 2-qubit NMR quantum computer
+平台 job ID：G-260820-0008
+提交时间：2026-08-20T19:13:25+08:00
+完成时间：2026-08-20T19:15:15+08:00
+shots：N/A — SpinQ NMR task page and export expose ensemble projection probabilities; no discrete shot count was provided, so none is fabricated.
+实际执行的 QASM：`evidence/files/spinq-hardware-bell.qasm`
+平台返回的原始结果：`evidence/files/spinq-hardware-result.raw.json`
+规范化结果：`evidence/files/spinq-hardware-result.normalized.json`
+元数据：`evidence/files/spinq-hardware-metadata.json`
+任务页截图：`evidence/files/spinq-hardware-task.png`
+真实性边界：该记录来自平台任务页与原始导出文件中的可追溯硬件任务 ID，不是 simulator；组织方仍可登录平台复核。
 
 ## L2 交互体验
 

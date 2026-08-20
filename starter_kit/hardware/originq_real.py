@@ -59,7 +59,7 @@ def submit(*, shots: int, timeout: int, poll_interval: int, confirm: bool) -> di
                 program,
                 shots,
                 chip_id=config["chip_id"],
-                task_name="LoomQ 2026 Bell hardware evidence",
+                task_name="LoomQ",
             )
         )
         if not task_id:

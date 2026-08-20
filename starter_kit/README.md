@@ -17,6 +17,7 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量�
 - **Agent 自验**：严格 JSON 工具协议 → parser → validator → 独立参考模拟器；失败最多修复一次。
 - **L3 混合编译**：真正解析多 classical block、嵌套分支、测量位与顺序赋值，输出保序量子操作和 stock RISC-V。
 - **Custom Quantum RISC-V**：稳定 `custom-0` 32-bit 编码与确定性 coprocessor trace；不冒充量子模拟或硬件。
+- **两平台真机证据**：SpinQ 2 比特核磁硬件与 Origin Wukong 180-2 的可追溯任务、原始导出和隐私安全截图。
 - **一页式入口**：桌面与移动 Web、可访问电路图、真实证据链、counts 图表/表格、QASM 折叠与错误恢复。
 
 升级版申报 L1、L2、L3 与自定义量子 RISC-V Bonus；没有申报真机分。内部参考模拟器只用于验证，`adapter.run()` 的三个 target 都调用真实第三方 SDK。

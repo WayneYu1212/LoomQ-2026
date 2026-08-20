@@ -14,17 +14,20 @@ README = STARTER_ROOT / "evidence" / "README.md"
 
 
 def _block(item: dict[str, object]) -> str:
-    return f"""平台名称：{item['provider']}
+    shots = item["shots"] if item["shots"] is not None else item.get("shots_note", "N/A")
+    screenshot = item.get("task_screenshot_path") or "未提供"
+    return f"""平台名称：{item['platform']}
 设备：{item['device']}
 平台 job ID：{item['job_id']}
 提交时间：{item['submitted_at']}
 完成时间：{item['completed_at']}
-shots：{item['shots']}
+shots：{shots}
 实际执行的 QASM：`{item['qasm_path']}`
 平台返回的原始结果：`{item['raw_result_path']}`
 规范化结果：`{item['normalized_result_path']}`
 元数据：`{item['metadata_path']}`
-真实性边界：该记录来自 runner 返回的可追溯硬件任务 ID，不是 simulator；组织方仍可登录平台复核。
+任务页截图：`{screenshot}`
+真实性边界：该记录来自平台任务页与原始导出文件中的可追溯硬件任务 ID，不是 simulator；组织方仍可登录平台复核。
 """
 
 
