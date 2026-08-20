@@ -49,7 +49,7 @@ evidence/files/spinq-screenshot.png
 1. `我完全不懂量子，带我完成一个最简单的纠缠实验。`
 2. `我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。保持原意并修好。`
 3. `我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？`
-截图或演示视频：`evidence/files/loomq-desktop-ghz.png`、`evidence/files/loomq-mobile-bell.png`
+截图或演示视频：`evidence/files/qa-desktop-homepage-v2.png`、`evidence/files/qa-desktop-bell-result-v2.png`、`evidence/files/qa-desktop-ghz-result-v2.png`、`evidence/files/qa-mobile-homepage-v2.png`
 ```
 
 工作人员会在组委会统一模型环境中运行最终代码，测试新手是否看得懂、出错后能否得到有效帮助、结果是否清楚，以及多轮回答是否一致。选手自己的对话截图只用于说明产品流程，不直接证明得分。
@@ -62,7 +62,7 @@ evidence/files/spinq-screenshot.png
 干净环境中的构建和启动命令：`README.md` 的“5 分钟启动”和“一条命令验证”；Windows `.\starter_kit\scripts\setup.ps1` 后运行 `.\starter_kit\scripts\verify.ps1`
 架构说明：`ARCHITECTURE.md`；一个 parser/typed IR，三个 emitter 和三个真实 SDK runner，独立 verifier 不冒充 target
 目标用户和使用场景：没有量子背景的人文社科学生、设计师、产品经理、艺术创作者与普通 AI 用户，在五分钟内完成第一次可解释、可验证的量子实验
-完整使用流程：`USER_GUIDE.md`、`evidence/files/loomq-desktop-ghz.png`、`evidence/files/loomq-mobile-bell.png`
+完整使用流程：`USER_GUIDE.md`、`evidence/files/qa-desktop-bell-result-v2.png`、`evidence/files/qa-desktop-ghz-result-v2.png`、`evidence/files/qa-mobile-homepage-v2.png`
 ```
 
 工作人员会按最终 commit 实际构建和启动，并检查文档与代码是否一致、产品是否真的降低了量子计算的使用门槛。
@@ -82,8 +82,8 @@ evidence/files/spinq-screenshot.png
 请填写已有材料的路径，不要求为评分另写一套文档：
 
 ```text
-零基础首次运行指南：`USER_GUIDE.md` 的“Offline five-minute path”；Web 首页两个明确标注的本地示例
-量子概念解释：`USER_GUIDE.md` 的“Three ideas you need”与 Web 的“这意味着什么 / 这证明了什么”
+零基础首次运行指南：`USER_GUIDE.md` 的“Offline five-minute path”；Web 首页“第一次实验”本地 Bell 入口与三个快捷入口
+量子概念解释：`USER_GUIDE.md` 的“Three ideas you need”与 Web 的“验证与解释 / 这证明了什么”
 结果可视化：`loomq/web/static/` 中的电路 rails、counts bars 及并列表格；截图见 `evidence/files/`
 错误恢复或无障碍引导：`loomq/web/server.py` 的结构化恢复错误；HTML labels/live region/skip link；键盘焦点进入结果区；reduced-motion 与移动单列 CSS
 ```

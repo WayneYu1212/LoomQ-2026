@@ -4,7 +4,7 @@
 
 LoomQ Lab 是 LoomQ 2026 的 L1 + L2 参赛实现，面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。它不要求用户先读懂 QASM：用户描述意图，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。
 
-![LoomQ Lab 桌面 GHZ 实验](evidence/files/loomq-desktop-ghz.png)
+![LoomQ Lab V2 桌面 GHZ 实验](evidence/files/qa-desktop-ghz-result-v2.png)
 
 ## 当前交付
 
@@ -28,7 +28,7 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 参赛实现，面向从未接触量子计�
 .\.venv\Scripts\python.exe -m starter_kit.loomq.web.server
 ```
 
-打开 `http://127.0.0.1:8765/`，点击“让两枚量子硬币保持一致”或“制造三个彼此关联的量子比特”。这两个本地示例无需模型 Key，但仍真实运行量子 SDK。
+打开 `http://127.0.0.1:8765/`，点击“第一次实验”载入 Bell 纠缠示例，再点击“运行实验”。这个本地入口无需模型 Key，但仍真实运行所选量子 SDK；自由输入和 GHZ 等 Agent 任务需要配置 `LOOMQ_LLM_*`。
 
 ### Linux / macOS
 
@@ -184,9 +184,9 @@ docker run --rm loomq-submission
 - 参考模拟器最多 16 qubits，用于快速 Agent 自验；三方 SDK 按官方能力表运行更大电路。
 - 当前自动验证使用本地兼容模型端点；只有在提供个人 `LOOMQ_LLM_*` 后才能做真实公网模型 smoke，正式分以组委会环境为准。
 
-## 最终提交（尚未替用户执行）
+## 最终提交
 
-提交前需要显式授权 commit/push。授权后再运行：
+在最终 clean、已推送的 commit 上运行：
 
 ```bash
 python3 starter_kit/prepare_submission.py --team-id WayneYu1212
