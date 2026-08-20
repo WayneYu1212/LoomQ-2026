@@ -69,6 +69,13 @@ class WebAssetContractTests(unittest.TestCase):
         self.assertEqual(audit.external_resources, [])
         self.assertIn("把一句话", page_text)
         self.assertIn("这证明了什么", page_text)
+        self.assertIn("推荐", page_text)
+        self.assertIn("无需 LLM", page_text)
+        self.assertIn("1 描述", page_text)
+        self.assertIn("评测环境自动连接", page_text)
+        self.assertIn("评测 / 本地调试说明", page_text)
+        self.assertIn("当前打开的是静态文件", page_text)
+        self.assertTrue({"launch-notice", "runtime-status", "runtime-status-copy"}.issubset(audit.ids))
 
     def test_css_contains_responsive_motion_and_touch_guardrails(self):
         css = self.paths["css"].read_text(encoding="utf-8")
@@ -78,13 +85,24 @@ class WebAssetContractTests(unittest.TestCase):
         self.assertIn("--text-primary:", css)
         self.assertIn("--border-default:", css)
         self.assertIn("min-height: 44px", css)
+        self.assertIn("@media (min-width: 1024px)", css)
+        self.assertIn("white-space: nowrap", css)
+        self.assertIn(".runtime-status", css)
 
     def test_javascript_uses_safe_dom_rendering_and_same_origin_api(self):
         script = self.paths["js"].read_text(encoding="utf-8")
 
         self.assertIn("fetch('/api/experiment'", script)
+        self.assertIn("fetch('/api/health'", script)
+        self.assertIn("window.location.protocol === 'file:'", script)
+        self.assertIn("agent_unavailable", script)
+        self.assertIn("invalid_request", script)
+        self.assertIn("execution_failed", script)
         self.assertIn("textContent", script)
         self.assertNotIn("innerHTML", script)
+        self.assertNotIn("localStorage", script)
+        self.assertNotIn("sessionStorage", script)
+        self.assertNotIn("LOOMQ_LLM_API_KEY", script)
         self.assertNotIn("http://", script)
         self.assertNotIn("https://", script)
 

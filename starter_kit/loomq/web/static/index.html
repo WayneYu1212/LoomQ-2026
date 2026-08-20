@@ -29,6 +29,11 @@
     </header>
 
     <main id="top">
+      <aside class="launch-notice shell" id="launch-notice" role="status" tabindex="-1" hidden>
+        <b>实验接口尚未启动</b>
+        <span>当前打开的是静态文件，实验接口尚未启动。请启动 LoomQ 本地服务后访问 http://127.0.0.1:8765/。</span>
+      </aside>
+
       <section class="hero shell" aria-labelledby="page-title">
         <p class="hero-kicker">量子实验仪器</p>
         <h1 id="page-title">你想让量子计算机做什么？</h1>
@@ -40,7 +45,8 @@
           <div class="instrument-copy">
             <p class="section-index">01 / 输入</p>
             <h2 id="experiment-title">描述一个实验</h2>
-            <p>把一句话变成可验证的量子实验。不需要先懂量子计算，剩下的交给程序完成。</p>
+            <p class="instrument-intro">把一句话变成可验证的量子实验。不需要先懂量子计算，剩下的交给程序完成。</p>
+            <p class="beginner-sequence" aria-label="实验步骤">1 描述 <span>→</span> 2 验证 <span>→</span> 3 运行 <span>→</span> 4 看懂结果</p>
           </div>
 
           <form id="experiment-form" novalidate>
@@ -52,7 +58,11 @@
             <div class="quick-actions" aria-label="快捷入口">
               <button type="button" class="quick-action" data-example="bell" data-prompt="让两枚量子硬币保持一致">
                 <span class="quick-index">01</span>
-                <span class="quick-copy"><b>第一次实验</b><small>载入 Bell 纠缠示例</small></span>
+                <span class="quick-copy">
+                  <span class="quick-badges"><strong>推荐</strong><em>无需 LLM</em></span>
+                  <b>第一次实验</b>
+                  <small>运行 Bell 纠缠示例</small>
+                </span>
               </button>
               <button type="button" class="quick-action" data-prompt="我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。请保持原意并修好它。">
                 <span class="quick-index">02</span>
@@ -83,9 +93,18 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
               </button>
             </div>
+            <div class="runtime-status" id="runtime-status" role="status" aria-live="polite">
+              <span class="runtime-dot" aria-hidden="true"></span>
+              <span id="runtime-status-copy">本地示例：可直接运行 · Agent：评测环境自动连接</span>
+            </div>
             <p class="form-status" id="form-status" aria-live="polite">“第一次实验”无需模型 Key；自由输入需要配置 LOOMQ_LLM_*。</p>
           </form>
         </div>
+
+        <details class="runtime-disclosure">
+          <summary>评测 / 本地调试说明</summary>
+          <p>正式评测会通过 <code>LOOMQ_LLM_*</code> 环境变量自动连接 DeepSeek，浏览器无需也不会接收 API Key。本地调试时，请先设置相同环境变量，再启动 LoomQ Python 服务。</p>
+        </details>
 
         <div class="run-status" id="run-status" aria-hidden="true">
           <span class="run-status-line"></span>

@@ -9,6 +9,9 @@
   var shotsField = document.querySelector('#shots');
   var runButton = document.querySelector('#run-button');
   var formStatus = document.querySelector('#form-status');
+  var launchNotice = document.querySelector('#launch-notice');
+  var runtimeStatus = document.querySelector('#runtime-status');
+  var runtimeStatusCopy = document.querySelector('#runtime-status-copy');
   var workspace = document.querySelector('#workspace');
   var circuitPanel = document.querySelector('#circuit-panel');
   var verificationPanel = document.querySelector('#verification-panel');
@@ -28,6 +31,8 @@
   var pipelineStages = [].slice.call(document.querySelectorAll('.pipeline li'));
   var quickActionButtons = [].slice.call(document.querySelectorAll('.quick-action'));
   var focusBackendAction = document.querySelector('#focus-backend-action');
+  var isStaticFile = window.location.protocol === 'file:';
+  var localServiceUrl = 'http:' + '//' + '127.0.0.1:8765/';
 
   var selectedExample = null;
   var mcCtx = null;
@@ -44,6 +49,59 @@
 
   function clear(el) {
     while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  function setRuntimeStatus(message, state) {
+    runtimeStatusCopy.textContent = message;
+    runtimeStatus.dataset.state = state || '';
+  }
+
+  function loadRuntimeStatus() {
+    if (isStaticFile) {
+      launchNotice.hidden = false;
+      setRuntimeStatus('实验接口未启动 · 请通过 LoomQ 本地服务打开', 'offline');
+      return;
+    }
+    fetch('/api/health', { headers: { 'Accept': 'application/json' } })
+      .then(function (response) {
+        if (!response.ok) throw new Error('health endpoint unavailable');
+        return response.json();
+      })
+      .then(function (health) {
+        if (health.llm_configured) {
+          setRuntimeStatus('Agent 已连接 · 环境变量注入', 'connected');
+        } else {
+          setRuntimeStatus('Agent 未配置 · “第一次实验”仍可直接运行', 'local');
+        }
+      })
+      .catch(function () {
+        setRuntimeStatus('本地服务暂时不可用 · 请确认 Python 服务仍在运行', 'offline');
+      });
+  }
+
+  function apiError(code, message) {
+    var error = new Error(message || '实验未完成');
+    error.code = code || '';
+    return error;
+  }
+
+  function failureMessage(error) {
+    if (isStaticFile) {
+      return '当前打开的是静态文件，实验接口尚未启动。请启动 LoomQ 本地服务后访问 ' + localServiceUrl + '。';
+    }
+    if (error.code === 'agent_unavailable') {
+      return error.message;
+    }
+    if (error.code === 'invalid_request') {
+      return '输入未通过检查：' + error.message;
+    }
+    if (error.code === 'execution_failed') {
+      return '量子 SDK 执行未完成：' + error.message;
+    }
+    if (error instanceof TypeError || error.code === 'network_unavailable') {
+      return '无法连接 LoomQ 本地服务。请确认 Python 服务已启动，并访问 ' + localServiceUrl + '。';
+    }
+    return '实验未完成：' + error.message;
   }
 
   /* ---- Quantum Field: a restrained visual representation, not a simulation ---- */
@@ -419,6 +477,13 @@
 
   form.addEventListener('submit', function (event) {
     event.preventDefault();
+    if (isStaticFile) {
+      launchNotice.hidden = false;
+      formStatus.textContent = failureMessage(apiError('network_unavailable', ''));
+      formStatus.classList.add('is-error');
+      launchNotice.focus({ preventScroll: true });
+      return;
+    }
     var p = promptField.value.trim();
     var shots = Number(shotsField.value);
     if (!p) {
@@ -437,13 +502,16 @@
       body: JSON.stringify(payload)
     }).then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
     .then(function (result) {
-      if (!result.ok) throw new Error(result.data.error ? result.data.error.message : '\u5b9e\u9a8c\u672a\u5b8c\u6210');
+      if (!result.ok) {
+        var detail = result.data && result.data.error ? result.data.error : {};
+        throw apiError(detail.code, detail.message);
+      }
       renderExperiment(result.data);
       completed = true;
     }).catch(function (err) {
       setPipeline('');
       setFieldState('relax');
-      formStatus.textContent = '\u672a\u5b8c\u6210\uff1a' + err.message + ' \u8bf7\u68c0\u67e5\u914d\u7f6e\u540e\u91cd\u8bd5\u3002';
+      formStatus.textContent = failureMessage(err);
       formStatus.classList.add('is-error');
     }).then(function () {
       setBusy(false);
@@ -455,6 +523,7 @@
   resizeQuantumField();
   initMeasurementCanvas();
   resumeQuantumField();
+  loadRuntimeStatus();
 
   var resizeTimer = 0;
   window.addEventListener('resize', function () {

@@ -6,6 +6,7 @@ import argparse
 import importlib
 import json
 import mimetypes
+import os
 from pathlib import Path
 import re
 from http import HTTPStatus
@@ -23,7 +24,7 @@ from ..compiler.parser import parse_qasm
 from ..agent.verifier import VerificationReport, verify_qasm
 
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 MAX_REQUEST_BYTES = 65_536
 MAX_SHOTS = 8_192
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
@@ -53,13 +54,22 @@ measure q -> c;
 LOCAL_EXAMPLES = {
     "bell": (
         BELL_QASM,
-        "这是一个本地教学示例：先让第一个量子比特进入两种可能，再让第二个与它关联。",
+        "两枚量子比特的结果大多一起出现为 00 或 11。\n"
+        "这说明当前程序在所选无噪声模拟器上产生了预期的纠缠分布。\n"
+        "这不等于量子优势，也不是真机噪声证据。",
     ),
     "ghz": (
         GHZ_QASM,
         "这是一个本地教学示例：三个量子比特会形成全 0 或全 1 的联合结果。",
     ),
 }
+
+
+def _llm_configured() -> bool:
+    return all(
+        os.environ.get(name)
+        for name in ("LOOMQ_LLM_BASE_URL", "LOOMQ_LLM_API_KEY", "LOOMQ_LLM_MODEL")
+    )
 
 
 def _extract_qasm(reply: str) -> str | None:
@@ -199,7 +209,13 @@ class _LoomQHandler(BaseHTTPRequestHandler):
         if path == "/api/health":
             self._json(
                 HTTPStatus.OK,
-                {"status": "ok", "service": "LoomQ Lab", "version": VERSION},
+                {
+                    "status": "ok",
+                    "service": "LoomQ Lab",
+                    "version": VERSION,
+                    "llm_configured": _llm_configured(),
+                    "configuration_source": "environment",
+                },
             )
             return
         relative = "index.html" if path == "/" else path.lstrip("/")
@@ -225,6 +241,15 @@ class _LoomQHandler(BaseHTTPRequestHandler):
             self._error(HTTPStatus.BAD_REQUEST, "invalid_request", "invalid Content-Length")
             return
         if length > MAX_REQUEST_BYTES:
+            # Drain moderately oversized bodies so Windows does not reset the
+            # client connection before it can read the bounded JSON error.
+            if length <= MAX_REQUEST_BYTES * 2:
+                remaining = length
+                while remaining:
+                    chunk = self.rfile.read(min(8_192, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
             self._error(
                 HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
                 "request_too_large",
@@ -246,7 +271,7 @@ class _LoomQHandler(BaseHTTPRequestHandler):
                 self._error(
                     HTTPStatus.SERVICE_UNAVAILABLE,
                     "agent_unavailable",
-                    "Agent 模型尚未配置或暂时不可用；你仍可运行本地 Bell/GHZ 示例。",
+                    "Agent 未配置或暂时不可用。正式评测会注入 LOOMQ_LLM_* 环境变量；本地仍可直接运行“第一次实验”。",
                 )
             else:
                 self._error(HTTPStatus.INTERNAL_SERVER_ERROR, "execution_failed", message)
