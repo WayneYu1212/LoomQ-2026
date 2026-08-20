@@ -8,6 +8,96 @@ LoomQ 量子接入平权计划 - 轻量级 RISC-V 寄存器与控制流模拟器
 
 from typing import Dict, List, Tuple, Any
 
+
+QUANTUM_CUSTOM_OPCODE = 0x0B  # RISC-V custom-0 opcode space
+QUANTUM_FUNCT3 = {
+    "qinit": 0,
+    "qh": 1,
+    "qx": 2,
+    "qrz": 3,
+    "qcx": 4,
+    "qmeasure": 5,
+}
+_FUNCT3_QUANTUM = {value: key for key, value in QUANTUM_FUNCT3.items()}
+
+
+def _bounded_integer(name: str, value: int, lower: int, upper: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or not lower <= value <= upper:
+        raise ValueError(f"{name} must be an integer between {lower} and {upper}")
+    return value
+
+
+def encode_quantum_instruction(mnemonic: str, *operands: int) -> int:
+    """Encode one deterministic LoomQ quantum-intent instruction as a 32-bit word."""
+
+    if not isinstance(mnemonic, str) or mnemonic.lower() not in QUANTUM_FUNCT3:
+        raise ValueError(f"unsupported quantum instruction: {mnemonic}")
+    name = mnemonic.lower()
+    funct3 = QUANTUM_FUNCT3[name]
+    word = QUANTUM_CUSTOM_OPCODE | (funct3 << 12)
+    if name in {"qinit", "qh", "qx"}:
+        if len(operands) != 1:
+            raise ValueError(f"{name} requires one qubit operand")
+        qubit = _bounded_integer("qubit", operands[0], 0, 31)
+        return word | (qubit << 7)
+    if name == "qrz":
+        if len(operands) != 2:
+            raise ValueError("qrz requires a qubit and signed milliradian immediate")
+        qubit = _bounded_integer("qubit", operands[0], 0, 31)
+        angle = _bounded_integer("angle_milliradians", operands[1], -2048, 2047)
+        return word | (qubit << 7) | ((angle & 0xFFF) << 20)
+    if name == "qcx":
+        if len(operands) != 2:
+            raise ValueError("qcx requires control and target qubits")
+        control = _bounded_integer("control qubit", operands[0], 0, 31)
+        target = _bounded_integer("target qubit", operands[1], 0, 31)
+        if control == target:
+            raise ValueError("qcx control and target must differ")
+        return word | (control << 15) | (target << 20)
+    if len(operands) != 2:
+        raise ValueError("qmeasure requires a qubit and result slot")
+    qubit = _bounded_integer("qubit", operands[0], 0, 31)
+    result_slot = _bounded_integer("result slot", operands[1], 0, 31)
+    return word | (result_slot << 7) | (qubit << 15)
+
+
+def decode_quantum_word(word: int) -> Tuple[str, List[int]]:
+    """Decode and validate one LoomQ custom-0 quantum-intent instruction word."""
+
+    value = _bounded_integer("instruction word", word, 0, 0xFFFFFFFF)
+    if value & 0x7F != QUANTUM_CUSTOM_OPCODE:
+        raise ValueError("instruction does not use the LoomQ custom-0 opcode")
+    funct3 = (value >> 12) & 0x7
+    mnemonic = _FUNCT3_QUANTUM.get(funct3)
+    if mnemonic is None:
+        raise ValueError(f"reserved LoomQ quantum funct3: {funct3}")
+    rd = (value >> 7) & 0x1F
+    rs1 = (value >> 15) & 0x1F
+    rs2 = (value >> 20) & 0x1F
+    funct7 = (value >> 25) & 0x7F
+    if mnemonic in {"qinit", "qh", "qx"}:
+        if rs1 or rs2 or funct7:
+            raise ValueError(f"reserved fields must be zero for {mnemonic}")
+        operands = [rd]
+    elif mnemonic == "qrz":
+        if rs1:
+            raise ValueError("reserved rs1 field must be zero for qrz")
+        immediate = (value >> 20) & 0xFFF
+        if immediate & 0x800:
+            immediate -= 0x1000
+        operands = [rd, immediate]
+    elif mnemonic == "qcx":
+        if rd or funct7:
+            raise ValueError("reserved rd/funct7 fields must be zero for qcx")
+        if rs1 == rs2:
+            raise ValueError("qcx control and target must differ")
+        operands = [rs1, rs2]
+    else:
+        if rs2 or funct7:
+            raise ValueError("reserved rs2/funct7 fields must be zero for qmeasure")
+        operands = [rs1, rd]
+    return mnemonic, operands
+
 class TinyRISCVEmulator:
     def __init__(self):
         # 32个通用寄存器 x0 - x31，x0 恒为 0
@@ -15,6 +105,7 @@ class TinyRISCVEmulator:
         self.pc = 0
         self.labels: Dict[str, int] = {}
         self.instructions: List[Tuple[str, List[str]]] = []
+        self.quantum_trace: List[Dict[str, Any]] = []
         self.max_steps = 1000  # 防止死循环
 
     def set_register(self, reg: str, value: int):
@@ -43,9 +134,10 @@ class TinyRISCVEmulator:
         self.labels = {}
         self.pc = 0
         self.registers = [0] * 32
+        self.quantum_trace = []
         
         lines = asm_code.split("\n")
-        temp_instructions = []
+        temp_instructions: List[Tuple[str, List[str]]] = []
         
         # 第一次解析：过滤注释、空行并建立指令列表与 Label 映射
         for line in lines:
@@ -74,6 +166,15 @@ class TinyRISCVEmulator:
             tokens = line.replace(",", " ").split()
             op = tokens[0].lower()
             args = tokens[1:]
+            if op == ".word":
+                if len(args) != 1:
+                    raise ValueError(".word requires exactly one 32-bit value")
+                try:
+                    word = int(args[0], 0)
+                except ValueError as exc:
+                    raise ValueError(f"invalid .word value: {args[0]}") from exc
+                op, operands = decode_quantum_word(word)
+                args = [str(operand) for operand in operands]
             temp_instructions.append((op, args))
             
         self.instructions = temp_instructions
@@ -136,6 +237,30 @@ class TinyRISCVEmulator:
                 if label not in self.labels:
                     raise ValueError(f"未定义的跳转标签: {label}")
                 next_pc = self.labels[label]
+
+            elif op in QUANTUM_FUNCT3:
+                try:
+                    operands = [int(argument) for argument in args]
+                except ValueError as exc:
+                    raise ValueError(f"{op} operands must be integers") from exc
+                encode_quantum_instruction(op, *operands)
+                if op in {"qinit", "qh", "qx"}:
+                    event = {"op": op, "qubit": operands[0]}
+                elif op == "qrz":
+                    event = {
+                        "op": op,
+                        "qubit": operands[0],
+                        "angle_milliradians": operands[1],
+                    }
+                elif op == "qcx":
+                    event = {"op": op, "control": operands[0], "target": operands[1]}
+                else:
+                    event = {
+                        "op": op,
+                        "qubit": operands[0],
+                        "result_slot": operands[1],
+                    }
+                self.quantum_trace.append(event)
                 
             else:
                 raise ValueError(f"不支持的指令操作: {op}")
