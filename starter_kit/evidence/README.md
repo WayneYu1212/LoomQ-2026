@@ -16,6 +16,8 @@
 
 ## L1 真机
 
+真机 readiness 工具已准备：`hardware/originq_real.py`、`hardware/braket_qpu.py`、`hardware/validate_evidence.py`、`hardware/finalize_evidence.py`。在两个真实平台 job 完成前，本节保持未申报；fixture、dry-run 与 simulator 结果会被 finalizer 拒绝。
+
 每个有效真机平台计 5 分，最多两个平台。模拟器不计真机分。每个平台复制并填写一次下面的信息：
 
 ```text

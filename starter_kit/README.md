@@ -2,6 +2,8 @@
 
 > 用一句人话创建量子程序；用一套统一 IR 发往三个平台；在展示结果之前，先用程序验证它。
 
+> **评委 60 秒入口：** [JUDGE_GUIDE.md](JUDGE_GUIDE.md) · [评分自审](evidence/SCORECARD.md) · [最终人类清单](FINAL_HUMAN_CHECKLIST.md)
+
 LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。它不要求用户先读懂 QASM：用户描述意图，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。Hybrid-QASM 的经典控制块由独立 lexer/parser 编译为官方 stock RISC-V 子集。
 
 ![LoomQ Lab V2 桌面 GHZ 实验](evidence/files/qa-desktop-ghz-result-v2.png)

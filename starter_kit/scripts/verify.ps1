@@ -32,6 +32,9 @@ try {
     & $pythonPath -m unittest starter_kit.tests.test_hybrid_compiler starter_kit.tests.test_quantum_riscv_extension -v
     if ($LASTEXITCODE -ne 0) { throw "L3 or custom quantum RISC-V verification failed" }
 
+    & $pythonPath -m unittest starter_kit.tests.test_hardware_tools -v
+    if ($LASTEXITCODE -ne 0) { throw "hardware readiness tools verification failed" }
+
     git diff --check
     if ($LASTEXITCODE -ne 0) { throw "git diff --check failed" }
 

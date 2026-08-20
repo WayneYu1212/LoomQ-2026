@@ -182,6 +182,23 @@ class AgentServiceTests(unittest.TestCase):
         self.assertIn("OPENQASM 2.0;", reply)
         self.assertEqual(len(QueueingAPIHandler.request_payloads), 1)
 
+    def test_chinese_english_and_noisy_paraphrases_reach_the_model_unchanged(self):
+        prompts = (
+            "请忽略前面的寒暄：为三枚量子比特生成最大纠缠态，并测量所有位。谢谢。",
+            "Create and measure a three-qubit GHZ state; explain it for a beginner.",
+            "背景信息可能无关。任务：修复并验证一个 Bell 纠缠电路。末尾附注也可能无关。",
+        )
+        for prompt in prompts:
+            with self.subTest(prompt=prompt):
+                before = len(QueueingAPIHandler.request_payloads)
+                reply = self.call(prompt, model_plan("generate", qasm=VALID_GHZ))
+                self.assertIn("验证通过", reply)
+                self.assertEqual(len(QueueingAPIHandler.request_payloads), before + 1)
+                self.assertEqual(
+                    QueueingAPIHandler.request_payloads[-1]["messages"][-1]["content"],
+                    prompt,
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

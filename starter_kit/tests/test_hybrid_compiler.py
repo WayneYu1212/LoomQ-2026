@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+import re
 import unittest
 
 from starter_kit import adapter
@@ -226,6 +227,29 @@ measure q[0] -> c[0]; measure q[1] -> c[1];
         for label, source in cases.items():
             with self.subTest(label=label), self.assertRaises(ValueError):
                 adapter.compile_hybrid(source)
+
+    def test_output_is_deterministic_labels_are_unique_and_high_measurement_bits_work(self):
+        source = """OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[1]; creg c[22];
+h q[0];
+classical {
+  if (c[21] != 0) { r1 = c[21] + 9; } else { r1 = -9; }
+  if (r1 == 10) { r2 = r1 - 3; } else { r2 = r1 + 3; }
+}
+measure q[0] -> c[21];
+"""
+        first_ops, first_assembly = adapter.compile_hybrid(source)
+        second_ops, second_assembly = adapter.compile_hybrid(source)
+        self.assertEqual((first_ops, first_assembly), (second_ops, second_assembly))
+        labels = re.findall(r"^(L3_[A-Z]+_\d+):", first_assembly, flags=re.MULTILINE)
+        self.assertEqual(len(labels), len(set(labels)))
+        for measured, expected in ((0, (-9, -6)), (1, (10, 7))):
+            emulator = TinyRISCVEmulator()
+            emulator.load_program(first_assembly)
+            emulator.set_register("x31", measured)
+            registers = emulator.execute()
+            self.assertEqual((registers.get("x1"), registers.get("x2")), expected)
 
 
 if __name__ == "__main__":
