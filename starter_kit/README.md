@@ -2,7 +2,7 @@
 
 > 用一句人话创建量子程序；用一套统一 IR 发往三个平台；在展示结果之前，先用程序验证它。
 
-LoomQ Lab 是 LoomQ 2026 的 L1 + L2 参赛实现，面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。它不要求用户先读懂 QASM：用户描述意图，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。
+LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。它不要求用户先读懂 QASM：用户描述意图，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。Hybrid-QASM 的经典控制块由独立 lexer/parser 编译为官方 stock RISC-V 子集。
 
 ![LoomQ Lab V2 桌面 GHZ 实验](evidence/files/qa-desktop-ghz-result-v2.png)
 
@@ -13,9 +13,11 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 参赛实现，面向从未接触量子计�
 - **完整 12 门**：`h x s sdg t tdg rz ry cx cu1 swap ccx`，包括参数表达式、多个寄存器、逐位测量和 little-endian counts。
 - **L2 三任务**：自然语言生成、保持意图的 QASM 修复、按官方 JSON 能力表推荐后端。
 - **Agent 自验**：严格 JSON 工具协议 → parser → validator → 独立参考模拟器；失败最多修复一次。
+- **L3 混合编译**：真正解析多 classical block、嵌套分支、测量位与顺序赋值，输出保序量子操作和 stock RISC-V。
+- **Custom Quantum RISC-V**：稳定 `custom-0` 32-bit 编码与确定性 coprocessor trace；不冒充量子模拟或硬件。
 - **一页式入口**：桌面与移动 Web、可访问电路图、真实证据链、counts 图表/表格、QASM 折叠与错误恢复。
 
-第一版明确不参加 L3，也没有申报真机分。内部参考模拟器只用于验证，`adapter.run()` 的三个 target 都调用真实第三方 SDK。
+升级版申报 L1、L2、L3 与自定义量子 RISC-V Bonus；没有申报真机分。内部参考模拟器只用于验证，`adapter.run()` 的三个 target 都调用真实第三方 SDK。
 
 ## 5 分钟启动
 
@@ -29,6 +31,8 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 参赛实现，面向从未接触量子计�
 ```
 
 打开 `http://127.0.0.1:8765/`，点击“第一次实验”载入 Bell 纠缠示例，再点击“运行实验”。这个本地入口无需模型 Key，但仍真实运行所选量子 SDK；自由输入和 GHZ 等 Agent 任务需要配置 `LOOMQ_LLM_*`。
+
+不要双击 `starter_kit/loomq/web/static/index.html`：`file://` 只能显示静态界面，无法连接 Python SDK 后端。若误开，页面会给出本地服务启动地址，不会误报成 LLM 配置错误。
 
 ### Linux / macOS
 
@@ -122,6 +126,9 @@ flowchart LR
   OR --> N
   BR --> N
   N --> W[LoomQ Lab 解释与证据]
+  H3[Hybrid-QASM] --> HP[Hybrid lexer / parser]
+  HP --> QO[保序量子操作]
+  HP --> RV[Stock RISC-V 控制流]
 ```
 
 核心目录：
@@ -133,6 +140,7 @@ loomq/
 ├── runners/      # 三个真实 SDK 与统一结果
 ├── simulator.py  # 独立验证 oracle，不作为 target fallback
 ├── agent/        # 模型协议、能力筛选、自验与一次修复
+├── hybrid/       # Hybrid-QASM scanner、AST、parser 与 stock RISC-V compiler
 └── web/          # 标准库 HTTP 服务与离线静态单页
 ```
 
@@ -146,9 +154,10 @@ loomq/
 def transpile(qasm_str: str, target: str) -> str: ...
 def run(qasm_str: str, target: str, shots: int) -> dict: ...
 def agent_chat(prompt: str) -> str: ...
+def compile_hybrid(hybrid_qasm_str: str) -> tuple[list, str]: ...
 ```
 
-`compile_hybrid` 保持 `NotImplementedError`，并在 `submission.yaml` 中声明 L3 为 false。`run()` 返回：
+`compile_hybrid` 已实现真正的 L3 lexer/parser/compiler，并在 `submission.yaml` 中声明 L3。`run()` 返回：
 
 ```json
 {
@@ -179,8 +188,8 @@ docker run --rm loomq-submission
 
 人工评分入口为 [evidence/README.md](evidence/README.md)。截图是流程说明，不替代可运行代码、原始结果或真机 job ID。
 
-- 已申报：L2 交互体验、工程与产品化、新手引导与视觉叙事。
-- 未申报：真机、L3、自定义量子 RISC-V。
+- 已申报：L1/L2/L3、L2 交互体验、工程与产品化、自定义量子 RISC-V、新手引导与视觉叙事。
+- 未申报：真机。
 - 参考模拟器最多 16 qubits，用于快速 Agent 自验；三方 SDK 按官方能力表运行更大电路。
 - 当前自动验证使用本地兼容模型端点；只有在提供个人 `LOOMQ_LLM_*` 后才能做真实公网模型 smoke，正式分以组委会环境为准。
 

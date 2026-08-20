@@ -53,6 +53,16 @@ The SDK-provided task ID is used where available. Local runtimes without one rec
 
 Every case requires at least one actual model response. Deterministic tools constrain the model; they do not replace it with prompt-keyword lookup.
 
+## L3 Hybrid-QASM boundary
+
+`loomq.hybrid` is isolated from the accepted L1/L2 compiler. A stateful scanner removes comments without touching quoted QASM strings, extracts one or more balanced `classical { ... }` blocks, and preserves every non-declaration quantum/measurement statement in source order. The classical lexer/parser builds immutable assignment, expression, condition, and nested-if AST nodes; it never uses `eval`, `exec`, or sample-text substitutions.
+
+`compile_hybrid()` maps `r1..r9` to `x1..x9`, referenced `c[k]` to `x10+k`, and allocates scratch registers from unclaimed `x10..x31`. It emits only the official `li/add/sub/addi/beq/bne/j` subset with deterministic labels. Custom Bonus opcodes are never mixed into official L3 output.
+
+## Custom quantum RISC-V extension
+
+`riscv_emulator.py` retains stock behavior and additionally decodes a six-instruction family in RISC-V `custom-0` opcode space. Custom words append a deterministic `quantum_trace` describing intent; they never write general registers, invent measurements, simulate amplitudes, or claim QPU execution. The stable encoding and error behavior are specified in `QUANTUM_RISCV_EXTENSION.md` and exercised through encoded `.word` E2E tests.
+
 ## Web boundary
 
 `loomq.web.server` uses `ThreadingHTTPServer`, listens on `127.0.0.1` by default, caps request bodies at 64 KiB and shots at 8192, prevents static path traversal, and serves a same-origin static UI with a restrictive Content Security Policy. Model text is inserted with `textContent`, never HTML interpretation.
@@ -66,5 +76,7 @@ Bell/GHZ local examples are explicitly labeled `local_example`; they bypass the 
 - Hidden-shape regression: GHZ-5, QFT-like, Grover-like, three seeded random circuits at 8192 shots across three SDKs.
 - L2: real local OpenAI-compatible HTTP server, generate/repair/recommend, one retry, missing configuration, secret non-disclosure.
 - Product: real HTTP server, static traversal/request limits, desktop/mobile browser runs, accessible DOM and no external assets.
+- L3: public evaluator, nested/multi-block semantics, fixed-seed randomized programs, exhaustive measurement combinations, malformed input, and quantum-operation order.
+- Quantum RISC-V Bonus: literal 32-bit encodings, decode errors, mnemonic/word trace parity, E2E demo, and stock emulator compatibility.
 
 Automated checks are not QPU acceptance. Screenshots are not formal score receipts. A local venv is not a Docker build.

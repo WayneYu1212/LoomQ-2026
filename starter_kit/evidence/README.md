@@ -11,7 +11,7 @@
 - [ ] L1 真机
 - [x] L2 交互体验
 - [x] 工程与产品化
-- [ ] 自定义量子 RISC-V Bonus
+- [x] 自定义量子 RISC-V Bonus
 - [x] 新手引导与视觉叙事 Bonus
 
 ## L1 真机
@@ -49,7 +49,7 @@ evidence/files/spinq-screenshot.png
 1. `我完全不懂量子，带我完成一个最简单的纠缠实验。`
 2. `我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。保持原意并修好。`
 3. `我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？`
-截图或演示视频：`evidence/files/qa-desktop-homepage-v2.png`、`evidence/files/qa-desktop-bell-result-v2.png`、`evidence/files/qa-desktop-ghz-result-v2.png`、`evidence/files/qa-mobile-homepage-v2.png`
+截图或演示视频：`evidence/files/qa-maxscore-homepage-1440.png`、`evidence/files/qa-maxscore-homepage-1366.png`、`evidence/files/qa-maxscore-bell-no-llm-1440.png`、`evidence/files/qa-maxscore-agent-connected-1440.png`、`evidence/files/qa-maxscore-homepage-390.png`、`evidence/files/qa-maxscore-bell-390.png`
 ```
 
 工作人员会在组委会统一模型环境中运行最终代码，测试新手是否看得懂、出错后能否得到有效帮助、结果是否清楚，以及多轮回答是否一致。选手自己的对话截图只用于说明产品流程，不直接证明得分。
@@ -62,7 +62,7 @@ evidence/files/spinq-screenshot.png
 干净环境中的构建和启动命令：`README.md` 的“5 分钟启动”和“一条命令验证”；Windows `.\starter_kit\scripts\setup.ps1` 后运行 `.\starter_kit\scripts\verify.ps1`
 架构说明：`ARCHITECTURE.md`；一个 parser/typed IR，三个 emitter 和三个真实 SDK runner，独立 verifier 不冒充 target
 目标用户和使用场景：没有量子背景的人文社科学生、设计师、产品经理、艺术创作者与普通 AI 用户，在五分钟内完成第一次可解释、可验证的量子实验
-完整使用流程：`USER_GUIDE.md`、`evidence/files/qa-desktop-bell-result-v2.png`、`evidence/files/qa-desktop-ghz-result-v2.png`、`evidence/files/qa-mobile-homepage-v2.png`
+完整使用流程：`USER_GUIDE.md`、`evidence/files/qa-maxscore-bell-no-llm-1440.png`、`evidence/files/qa-maxscore-agent-connected-1440.png`、`evidence/files/qa-maxscore-bell-390.png`
 ```
 
 工作人员会按最终 commit 实际构建和启动，并检查文档与代码是否一致、产品是否真的降低了量子计算的使用门槛。
@@ -72,9 +72,9 @@ evidence/files/spinq-screenshot.png
 以下三项必须齐全且测试通过，才获得 8 分：
 
 ```text
-指令编码规格：[填写文档路径]
-模拟器扩展实现：[填写代码路径]
-端到端测试命令：[填写命令或文档路径]
+指令编码规格：`QUANTUM_RISCV_EXTENSION.md`
+模拟器扩展实现：`riscv_emulator.py` 的 `custom-0` encoder/decoder 与 `quantum_trace`
+端到端测试命令：`.venv/bin/python -m unittest starter_kit.tests.test_quantum_riscv_extension -v`（Windows 为 `.\.venv\Scripts\python.exe -m unittest starter_kit.tests.test_quantum_riscv_extension -v`）；演示为 `examples/quantum_riscv_demo.py`
 ```
 
 ## 新手引导与视觉叙事 Bonus

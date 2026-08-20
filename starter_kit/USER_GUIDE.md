@@ -18,6 +18,10 @@ You do not need to calculate matrices or write QASM to use the Web entry.
 4. Pick any of the three local backends and press **运行实验**.
 5. Read the four evidence checks, the circuit rails, and the counts chart.
 
+Do not open `loomq/web/static/index.html` as a `file://` page. That view cannot reach the Python SDK service. If it is opened accidentally, LoomQ shows the exact supported launch URL instead of describing the failure as an LLM-key problem.
+
+The calm runtime strip separates the two paths: **第一次实验** remains available without an LLM, while free-form Agent tasks use server-side `LOOMQ_LLM_*` environment injection. No browser key entry or LocalStorage secret is required.
+
 A correct Bell experiment is dominated by `00` and `11`, each near 50%. It is like two coins that are individually unpredictable but always agree. Sampling fluctuates, so 49%/51% is as healthy as exactly 50%/50%.
 
 After configuring `LOOMQ_LLM_*`, try `生成 3 比特 GHZ 态`. A correct GHZ result is dominated by `000` and `111`.

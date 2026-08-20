@@ -26,6 +26,12 @@ try {
     & $pythonPath starter_kit\tests\public_l2_fake.py
     if ($LASTEXITCODE -ne 0) { throw "public L2 fake-endpoint check failed" }
 
+    & $pythonPath starter_kit\evaluator.py --level l3
+    if ($LASTEXITCODE -ne 0) { throw "public L3 evaluator failed" }
+
+    & $pythonPath -m unittest starter_kit.tests.test_hybrid_compiler starter_kit.tests.test_quantum_riscv_extension -v
+    if ($LASTEXITCODE -ne 0) { throw "L3 or custom quantum RISC-V verification failed" }
+
     git diff --check
     if ($LASTEXITCODE -ne 0) { throw "git diff --check failed" }
 

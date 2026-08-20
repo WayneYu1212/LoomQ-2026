@@ -19,6 +19,8 @@ cd "$REPOSITORY_ROOT"
 "$PYTHON_PATH" -m unittest discover -s starter_kit/tests -v
 "$PYTHON_PATH" starter_kit/evaluator.py --level l1 --target spinq,originq,braket --json-out "$REPORT_PATH"
 "$PYTHON_PATH" starter_kit/tests/public_l2_fake.py
+"$PYTHON_PATH" starter_kit/evaluator.py --level l3
+"$PYTHON_PATH" -m unittest starter_kit.tests.test_hybrid_compiler starter_kit.tests.test_quantum_riscv_extension -v
 git diff --check
 
 bytes=$("$PYTHON_PATH" -c 'import pathlib, subprocess; paths = subprocess.check_output(["git", "ls-files", "--cached", "--others", "--exclude-standard", "--", "starter_kit"], text=True).splitlines(); print(sum(pathlib.Path(path).stat().st_size for path in paths if pathlib.Path(path).is_file()))')
