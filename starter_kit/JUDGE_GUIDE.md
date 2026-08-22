@@ -14,8 +14,22 @@ LoomQ lets people without QASM or quantum-SDK experience describe intent, receiv
 | Custom RISC-V +8 | spec + emulator + encoded E2E | `.venv/bin/python -m unittest starter_kit.tests.test_quantum_riscv_extension -v` | `QUANTUM_RISCV_EXTENSION.md` |
 | Newcomer +4 | recommended no-LLM Bell path, readable Web, evidence boundary | start Web and click **第一次实验** | `USER_GUIDE.md`, `evidence/README.md` |
 | L1 hardware +10 | genuine SpinQ + OriginQ task records | `.venv/bin/python -m starter_kit.hardware.validate_evidence evidence/files/spinq-hardware-metadata.json evidence/files/originq-hardware-metadata.json` | `evidence/HARDWARE_EVIDENCE_SUMMARY.md` |
+| OriginQ modern Runtime (supplemental) | Five separate `WK_C180_2` probability-only packages; not required for L1 hardware ladder or +10 | `.venv/bin/python starter_kit/scripts/validate_runtime_evidence.py` | `evidence/ORIGINQ_REPRODUCIBILITY.md`, `evidence/files/originq_runtime_*-manifest.json` |
 
 Windows uses `.\.venv\Scripts\python.exe` in place of `.venv/bin/python`.
+
+## Dependency isolation (important for judges)
+
+The **core evaluator does not require** `qpanda3-runtime` / `pyqpanda3`. Those are **optional** and isolated in `requirements-originq-runtime.txt`; they are only needed to reproduce the modern Origin Wukong 180-2 Runtime path (`originq_runtime_real.py`). The accepted legacy `originq_real.py` (pyqpanda QCloud, chip 72) is preserved unchanged for the canonical #55 evidence. Installing only `requirements.txt` yields a clean core that runs all L1/L2/L3, SpinQ, Braket, and RISC-V tests.
+
+## Scientific honesty boundary
+
+- **Simulator** results (SpinQit / pyQPanda CPUQVM / Braket LocalSimulator) are never described as real-QPU evidence.
+- **Real QPU** results are only the recorded task IDs with provider exports.
+- **Computational-basis correlation** (e.g. Bell 00/11) alone is reported as *correlation consistent with the target circuit*, not as a proof of entanglement — a classical mixture could produce the same Z-basis marginals.
+- **Three-basis Bell point estimates (2026-08-22)**: a pre-registered experiment on `WK_C180_2` qubits [49,58] (Z job `2C68A9D3`, X job `CA80432C`, Y job `5ABEAE90`, 1000 requested shots each) measured Cxx=0.9996, Cyy=−0.9987, Czz=0.9996, yielding |Cxx|+|Czz|=1.999 and F_Phi+=0.9994. The Runtime API exported provider probabilities rather than raw per-shot counts, so no independently justified confidence interval is available and this is **not** presented as a statistical entanglement witness or fidelity-threshold result. Theory (separable bound and formula) was checked programmatically before hardware submission; recompute point estimates with `.venv/bin/python starter_kit/scripts/compute_bell_witness.py` → `evidence/files/bell-witness-analysis.json`.
+- **GHZ-3** reports the real-QPU computational-basis distribution (P(000)≈0.703, P(111)≈0.108, P(011)≈0.187), **affected by hardware noise**; it is not claimed to be a noiseless perfect GHZ state and no multipartite-entanglement claim is made.
+- The **Multi** circuit's hardware distribution is compared programmatically against the LoomQ reference simulator (TVD ≈ 0.08, classical fidelity ≈ 0.993) as a distribution-consistency check, not an entanglement witness.
 
 ## Three L2 UX tasks
 

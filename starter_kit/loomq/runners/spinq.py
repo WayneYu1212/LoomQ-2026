@@ -10,7 +10,29 @@ import uuid
 from ..compiler.ir import Circuit
 from ..compiler.metrics import circuit_metrics
 from ..emitters import emit_spinq
-from .result import build_result, remap_measured_qubits
+from .result import _state_value, build_result, remap_measured_qubits
+
+
+def _extract_measured_spinq_counts(
+    raw: dict, measured_qubits: list[int], qubit_count: int
+) -> dict[str, int]:
+    """Reduce SpinQit BasicSimulator keys to measurement-ordered keys.
+
+    SpinQit reports every shot as a full-width key over ALL qubits (qubit 0 is
+    the leftmost bit), including wires that are never measured. The shared
+    remapper expects keys whose i-th bit is the value of ``measured_qubits[i]``,
+    so extract exactly those bits. When every qubit is measured this is the
+    identity mapping, preserving the previously working behavior.
+    """
+    reduced: dict[str, int] = {}
+    for raw_key, count in raw.items():
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+            raise ValueError("count values must be non-negative integers")
+        value = _state_value(raw_key, qubit_count)
+        full = f"{value:0{qubit_count}b}"
+        measured_key = "".join(full[qubit] for qubit in measured_qubits)
+        reduced[measured_key] = reduced.get(measured_key, 0) + count
+    return reduced
 
 
 _IMPORT_ERROR: ImportError | None
@@ -46,8 +68,11 @@ def run_spinq(circuit: Circuit, shots: int) -> dict[str, object]:
     config.configure_shots(shots)
     result = get_basic_simulator().execute(program, config)
     measured_qubits = [measurement.qubit for measurement in circuit.measurements]
+    reduced = _extract_measured_spinq_counts(
+        result.counts, measured_qubits, circuit.qubit_count
+    )
     counts = remap_measured_qubits(
-        result.counts,
+        reduced,
         measured_qubits=measured_qubits,
         measurements=circuit.measurements,
         cbit_count=circuit.cbit_count,

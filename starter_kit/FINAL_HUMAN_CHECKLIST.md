@@ -1,85 +1,54 @@
-# Final human checklist — genuine QPU evidence
+# Accepted baseline checklist — Issue #55 reference archive
 
-> Current submission work already includes user-supplied genuine SpinQ and OriginQ task exports. The commands below are retained only for rerunning or replacing those jobs; do not spend quota unnecessarily.
+> 本文件只记录已提交并 accepted 的 **Issue #55 / `65ce19b`** 基线，不是当前未提交 candidate 的状态声明。
+> 当前 candidate 的新增证据和回归结论必须单独审核；本基线清单不得被解读为新的提交或新的官方成绩。
+> 两平台真机证据（SpinQ + OriginQ）已完成并归档；不需要再运行任何真机任务或消耗配额。
 
-Never paste tokens or AWS credentials into chat. Keep them only in your local environment/standard credential store. Run commands from the fork root in Windows PowerShell.
+## 最终提交状态
 
-## Origin Quantum
+- 上游 Issue：**#55**（Final Submission）
+- 分支：`max-score/final-112`
+- 提交 SHA：`65ce19b207ae43bc2647f858666b041badadae8bd`
+- 状态：`submission:accepted`
+- 归档 Artifact：`submission-wayneyu1212-issue-55`
+- 归档 SHA-256：`5bda74d65b8d882dbfa61b40e5ea0802de753e0969c41123ab3af73c774f592d`
+- 理论满分上限：`112`（以官方评审为准，不代表已获得该分数）
 
-1. Log in or register at Origin Quantum Cloud, complete any identity/terms step, and activate real-chip quota.
-2. Obtain the personal cloud Token. Keep it local.
-3. Set it for the current PowerShell session:
+## 已归档的真机证据
 
-```powershell
-$env:LOOMQ_ORIGINQ_TOKEN = "<YOUR_TOKEN>"
-$env:LOOMQ_ORIGINQ_CHIP_ID = "72"
-$env:LOOMQ_ORIGINQ_DEVICE_NAME = "Origin Wukong / chip 72"
-```
+### Origin Quantum（Wukong 180-2）
 
-4. Diagnose:
+- 平台：Origin Quantum Cloud
+- 设备：Origin Wukong 180-2
+- job ID：`D0C7F490B43D9B04FDF19ABF3DB8B342`
+- shots：1000
+- 提交：2026-08-20T20:29:51.026+08:00；完成：2026-08-20T21:16:43.073+08:00
+- 证据文件：`evidence/files/originq-hardware-*`（raw CSV、normalized、metadata、任务截图、logical/physical SVG）
 
-```powershell
-.\.venv\Scripts\python.exe -m starter_kit.hardware.originq_real --doctor
-.\.venv\Scripts\python.exe -m starter_kit.hardware.originq_real --dry-run --shots 100
-```
+### SpinQ Cloud（2-qubit NMR）
+- 平台：SpinQ Cloud
+- 设备：SpinQ Cloud 2-qubit NMR quantum computer
+- job ID：`G-260820-0008`
+- shots：N/A — NMR 导出为 ensemble projection probabilities，未暴露离散 shots，未编造
+- 提交：2026-08-20T19:13:25+08:00；完成：2026-08-20T19:15:15+08:00
+- 证据文件：`evidence/files/spinq-hardware-*`（raw msgpack、metadata、截图、raw qasm.gz）
 
-5. Submit one genuine Bell job:
-
-```powershell
-.\starter_kit\scripts\run_originq_hardware.ps1 -Shots 100
-```
-
-6. Success prints a non-local `task_id` and writes `originq-hardware-{bell,result,metadata}*` files under `starter_kit/evidence/files/`.
-7. Common failures: invalid/expired Token, no real-chip quota, chip unavailable, insufficient balance, task queue timeout. Resolve in the Origin console; do not edit result JSON manually.
-
-## AWS Braket
-
-1. Log in to AWS, enable Braket, accept terms, configure billing/spending controls, create an S3 results bucket, and grant Braket/S3 permissions.
-2. Configure AWS credentials locally using the standard AWS credential chain (AWS CLI/profile/SSO). Do not put access keys in this repo.
-3. Set non-secret task configuration:
+## 归档后核对（只读）
 
 ```powershell
-$env:AWS_REGION = "us-west-1"
-$env:LOOMQ_BRAKET_S3_BUCKET = "<YOUR_S3_BUCKET>"
-$env:LOOMQ_BRAKET_S3_PREFIX = "loomq-2026-hardware"
-# Optional: choose a gate-based QPU ARN; otherwise doctor auto-discovers an online candidate.
-$env:LOOMQ_BRAKET_DEVICE_ARN = "<QPU_DEVICE_ARN>"
-```
-
-4. Diagnose and dry-run:
-
-```powershell
-.\.venv\Scripts\python.exe -m starter_kit.hardware.braket_qpu --doctor
-.\.venv\Scripts\python.exe -m starter_kit.hardware.braket_qpu --dry-run --shots 100 --max-estimated-usd <YOUR_CAP>
-```
-
-5. After reviewing the device, region, shots, availability and current AWS pricing, explicitly approve the paid task:
-
-```powershell
-.\starter_kit\scripts\run_braket_hardware.ps1 -MaxEstimatedUsd <YOUR_CAP> -Shots 100
-```
-
-6. Success prints a full `arn:aws:braket:...:quantum-task/...` and writes `braket-hardware-*` evidence files.
-7. Common failures: missing credentials, Braket permission denied, S3 access denied, device offline, region mismatch, billing/spending limit, queue timeout.
-
-## Finalize two genuine platforms
-
-```powershell
-.\starter_kit\scripts\finalize_hardware_evidence.ps1
 .\starter_kit\scripts\verify.ps1
 git diff --check
 git status --short
-```
-
-Review the generated L1 hardware section. Confirm both task IDs in the provider consoles, then commit only the genuine evidence files and updated README:
-
-```powershell
-git add -- starter_kit/evidence/README.md starter_kit/evidence/files/originq-hardware-* starter_kit/evidence/files/braket-hardware-*
-git commit -m "evidence: add two-platform genuine QPU results"
-git push origin max-score/final-112
-.\.venv\Scripts\python.exe starter_kit\prepare_submission.py --team-id WayneYu1212
 git rev-parse HEAD
 git ls-remote origin max-score/final-112
 ```
 
-Create a **new** upstream Final Submission Issue—never edit #52. Select L1/L2/L3 and set Hardware evidence to `starter_kit/evidence/README.md`. Completion requires `submission:accepted`; verify the receipt commit equals local/remote HEAD and record archive SHA-256 plus Artifact ID. Download the Artifact and independently hash `loomq-submission.tar.gz` when possible.
+- 本地 HEAD 应等于 remote 分支 SHA 与 receipt SHA。
+- 若需重新生成 L1 软件模拟器回归报告（仅软件，不影响真机证据）：
+  `.\.venv\Scripts\python.exe starter_kit\evaluator.py --level l1 --target spinq,originq,braket --json-out starter_kit\evidence\files\l1-public-report.json`
+
+## 注意事项
+
+- 不要提交任何 API Key、Token、Cookie、个人身份信息或平台账户隐私。
+- 不要修改 `evidence/files/` 下的原始导出（`*.raw.*`）或截图。
+- 不要重新提交已 accepted 的最终提交；如需更新，须先确认候选版本确实优于 #55。

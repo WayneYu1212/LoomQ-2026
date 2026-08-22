@@ -29,6 +29,47 @@ shots：1000
 任务页截图：`evidence/files/originq-hardware-task.png`
 真实性边界：该记录来自平台任务页与原始导出文件中的可追溯硬件任务 ID，不是 simulator；组织方仍可登录平台复核。
 
+平台名称：Origin Quantum Cloud（QPanda3 Runtime，新 API 通道）
+设备：Origin Wukong 180-2（device_id `WK_C180_2`）
+平台 job ID：2C68A9D3E2F6626B55EEC966DBC3CE2B（Bell，物理比特 [49,58]，请求 shots=1000）
+Provider 时间戳：当前 captured Runtime API response 未暴露
+规范化结果：`evidence/files/originq_runtime_bell-hardware-result.normalized.json`（provider probabilities，非逐 shot counts）
+原始 SDK 响应：`evidence/files/originq_runtime_bell-hardware-result.raw.json`
+说明：这是从旧 `pyqpanda.QCloud + chip_id=72` 迁移到官方 `qpanda3_runtime.RuntimeService + device('WK_C180_2')` 后，通过新 API 通道在 Wukong 180-2 上成功执行的 Bell 电路（H, CX, measure）。旧 API 网关对 chip 72 返回 maintenance，新 Runtime 通道正常。**本组 Z-basis 计算基测量显示强 00/11 相关（P(00)+P(11)≈1.0），与目标 Bell 电路的计算基相关一致；单凭计算基测量不足以证明纠缠，未作此声明。** 该 job 为独立 evidence 包，见 `originq_runtime_bell-manifest.json`。
+
+平台名称：Origin Quantum Cloud（多样化电路验证 · GHZ-3）
+设备：Origin Wukong 180-2（device_id `WK_C180_2`）
+GHZ-3 job ID：`B23E5B75D47D124A078F25B1C0083C2A`（物理比特 [49,58,67]，请求 shots=1000）
+GHZ-3 结果：`evidence/files/originq_runtime_ghz3-hardware-result.normalized.json`（provider probabilities；逐 shot counts unavailable）
+说明：GHZ-3 电路（H, CX, CX, measure）在 WK_C180_2 上执行成功，返回计算基分布：P(000)≈0.703、P(111)≈0.108、P(011)≈0.187。**目标态（000/111）占主要质量，但受硬件噪声影响，其余计算基态有非零概率；这是真机计算基分布，不代表无噪声完美 GHZ 态，也不据此声明证明三比特纠缠。** 独立 evidence 包见 `originq_runtime_ghz3-manifest.json`。
+
+平台名称：Origin Quantum Cloud（多样化电路验证 · 多门电路）
+设备：Origin Wukong 180-2（device_id `WK_C180_2`）
+Multi 电路 job ID：`8575222FE2C04A065B38B9DEE5BA9AEE`（物理比特 [49,58]，请求 shots=1000）
+Multi 电路结果：`evidence/files/originq_runtime_multi-hardware-result.normalized.json`（provider probabilities；逐 shot counts unavailable）
+说明：含多个 H/CNOT 门的电路在 WK_C180_2 上执行成功。**该电路的计算基分布与 LoomQ reference simulator 对同一电路计算的理想分布做过程序化比较（见 `evidence/files/originq_runtime_multi-reference-comparison.json`），此处仅报告真机返回的计算基分布，不推断纠缠。** 独立 evidence 包见 `originq_runtime_multi-manifest.json`。
+
+平台名称：Origin Quantum Cloud（Bell 三基点估计 · X-basis）
+设备：Origin Wukong 180-2（device_id `WK_C180_2`，物理比特 [49,58]，请求 shots=1000）
+X-basis job ID：`CA80432C12CFA2EBB33AC9A14C3AFF20`
+X-basis 结果：`evidence/files/originq_runtime_bell_xbasis-hardware-result.normalized.json`（provider probabilities）
+说明：Bell 制备（H, CX）后加 H,H 做 X 基测量。返回 P(00)=0.5206、P(11)=0.4792，**Cxx = 0.99956**。独立 evidence 包见 `originq_runtime_bell_xbasis-manifest.json`。
+
+平台名称：Origin Quantum Cloud（Bell 三基点估计 · Y-basis）
+设备：Origin Wukong 180-2（device_id `WK_C180_2`，物理比特 [49,58]，请求 shots=1000）
+Y-basis job ID：`5ABEAE903BE47DDEDCDEFABFBE162904`
+Y-basis 结果：`evidence/files/originq_runtime_bell_ybasis-hardware-result.normalized.json`（provider probabilities）
+说明：Bell 制备后加 Sdg,Sdg,H,H 做 Y 基测量（Sdg 以 S³ 分解提交，功能等价）。返回 01/10 反相关，**Cyy = −0.99865**。独立 evidence 包见 `originq_runtime_bell_ybasis-manifest.json`。
+
+**三基 Bell 点估计汇总**（同 device、同物理比特 [49,58]、每 job 请求 1000 shots）：
+- 关联：Czz = 0.99955（Z job `2C68A9D3...`）、Cxx = 0.99956（X job `CA80432C...`）、Cyy = −0.99865（Y job `5ABEAE90...`）
+- 点估计：|Cxx|+|Czz| = 1.99911；F_Φ+ = (1+Cxx−Cyy+Czz)/4 = 0.99944。
+- **声明边界：Runtime API 导出了 provider probabilities，而非 raw per-shot counts；因此不能独立建立 binomial/置信区间模型，上述点估计不构成统计性纠缠 witness 或 fidelity-threshold 结论。**
+- 理论（可分离上界 |Cxx|+|Czz|≤1 与 fidelity 公式）在提交硬件前经 22 万随机可分离态程序化验证；X/Y 结果保留为三基测量数据，不扩展到 GHZ-3 与 Multi。
+- 可复算：`scripts/compute_bell_witness.py` → `evidence/files/bell-witness-analysis.json`。
+
+**评分边界**：上述五个 `originq_runtime_*` 包是 **SUPPLEMENTAL MODERN RUNTIME EVIDENCE**，仅作 participant-side engineering/scientific evidence；不替代 accepted OriginQ canonical package、不构成额外硬件平台、不计入 L1 hardware ladder 或 +10 hardware score。其独立检查：`scripts/validate_runtime_evidence.py`。
+
 平台名称：SpinQ Cloud
 设备：SpinQ Cloud 2-qubit NMR quantum computer
 平台 job ID：G-260820-0008
@@ -57,6 +98,10 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 ```
 
 工作人员会在组委会统一模型环境中运行最终代码，测试新手是否看得懂、出错后能否得到有效帮助、结果是否清楚，以及多轮回答是否一致。选手自己的对话截图只用于说明产品流程，不直接证明得分。
+
+### L2 真实模型鲁棒性（参赛者本地补充证据）
+
+参赛者在本地用真实 DeepSeek V4 Flash endpoint 对 L2 链路做了 102 例压力测试（生成/修复/后端推荐，含 adversarial 与私有 prompt 变体），101 例通过，唯一失败为 provider 偶发 transient。详见 `L2_REAL_MODEL_VALIDATION.md` 与 `files/l2-deepseek-v4-flash-stress-summary.json`。这是参赛者本地 robustness evidence，**不替代** 组织方 hidden/private L2 评测，**不代表**官方 L2 满分。
 
 ## 工程与产品化
 
