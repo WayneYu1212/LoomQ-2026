@@ -68,7 +68,7 @@ Y-basis 结果：`evidence/files/originq_runtime_bell_ybasis-hardware-result.nor
 - 理论（可分离上界 |Cxx|+|Czz|≤1 与 fidelity 公式）在提交硬件前经 22 万随机可分离态程序化验证；X/Y 结果保留为三基测量数据，不扩展到 GHZ-3 与 Multi。
 - 可复算：`scripts/compute_bell_witness.py` → `evidence/files/bell-witness-analysis.json`。
 
-**评分边界**：上述五个 `originq_runtime_*` 包是 **SUPPLEMENTAL MODERN RUNTIME EVIDENCE**，仅作 participant-side engineering/scientific evidence；不替代 accepted OriginQ canonical package、不构成额外硬件平台、不计入 L1 hardware ladder 或 +10 hardware score。其独立检查：`scripts/validate_runtime_evidence.py`。
+**评分边界**：上述五个 `originq_runtime_*` 包是 **SUPPLEMENTAL MODERN RUNTIME EVIDENCE**，仅作 participant-side engineering/scientific evidence；不替代 canonical OriginQ package、不构成额外硬件平台、不计入 L1 hardware ladder 或 +10 hardware score。其独立检查：`scripts/validate_runtime_evidence.py`。
 
 平台名称：SpinQ Cloud
 设备：SpinQ Cloud 2-qubit NMR quantum computer
@@ -83,6 +83,16 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 任务页截图：`evidence/files/spinq-hardware-task.png`
 真实性边界：该记录来自平台任务页与原始导出文件中的可追溯硬件任务 ID，不是 simulator；组织方仍可登录平台复核。
 
+## Supplemental scientific validation — Bell Φ+ tomography
+
+- Backend: Origin Wukong 180-2 (`WK_C180_2`); successful job: `F7287E16E8478E4DB5051105468DB638`.
+- Requested shots: `1000`; physical block: `[49,58]`.
+- Provider fidelity: `0.952449`; independent fidelity: `0.952448944997`.
+- PPT minimum eigenvalue: `-0.456096768`; negativity: `0.456096768`.
+- At the level of the provider-reconstructed two-qubit density-matrix point estimate, the state is entangled under the 2×2 PPT criterion. **No statistical confidence interval is claimed.**
+- Full package: `ORIGINQ_BELL_TOMOGRAPHY.md`; independent audit: `files/originq-tomography/originq_tomography_bell_phi_plus-corrected-density-audit.json`; read-only validation: `python scripts/validate_originq_tomography.py`.
+- This is supplemental scientific evidence: it does not add a third L1 hardware platform, increase the L1 hardware +10 ceiling, or replace canonical SpinQ + OriginQ evidence.
+
 ## L2 交互体验
 
 请填写：
@@ -94,7 +104,7 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 1. `我完全不懂量子，带我完成一个最简单的纠缠实验。`
 2. `我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。保持原意并修好。`
 3. `我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？`
-截图或演示视频：`evidence/files/qa-maxscore-homepage-1440.png`、`evidence/files/qa-maxscore-homepage-1366.png`、`evidence/files/qa-maxscore-bell-no-llm-1440.png`、`evidence/files/qa-maxscore-agent-connected-1440.png`、`evidence/files/qa-maxscore-homepage-390.png`、`evidence/files/qa-maxscore-bell-390.png`
+截图或演示视频：`evidence/files/web-qa-homepage-1440.png`、`evidence/files/web-qa-homepage-1366.png`、`evidence/files/web-qa-bell-no-llm-1440.png`、`evidence/files/web-qa-agent-connected-1440.png`、`evidence/files/web-qa-homepage-390.png`、`evidence/files/web-qa-bell-390.png`
 ```
 
 工作人员会在组委会统一模型环境中运行最终代码，测试新手是否看得懂、出错后能否得到有效帮助、结果是否清楚，以及多轮回答是否一致。选手自己的对话截图只用于说明产品流程，不直接证明得分。
@@ -111,7 +121,7 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 干净环境中的构建和启动命令：`README.md` 的“5 分钟启动”和“一条命令验证”；Windows `.\starter_kit\scripts\setup.ps1` 后运行 `.\starter_kit\scripts\verify.ps1`
 架构说明：`ARCHITECTURE.md`；一个 parser/typed IR，三个 emitter 和三个真实 SDK runner，独立 verifier 不冒充 target
 目标用户和使用场景：没有量子背景的人文社科学生、设计师、产品经理、艺术创作者与普通 AI 用户，在五分钟内完成第一次可解释、可验证的量子实验
-完整使用流程：`USER_GUIDE.md`、`evidence/files/qa-maxscore-bell-no-llm-1440.png`、`evidence/files/qa-maxscore-agent-connected-1440.png`、`evidence/files/qa-maxscore-bell-390.png`
+完整使用流程：`USER_GUIDE.md`、`evidence/files/web-qa-bell-no-llm-1440.png`、`evidence/files/web-qa-agent-connected-1440.png`、`evidence/files/web-qa-bell-390.png`
 ```
 
 工作人员会按最终 commit 实际构建和启动，并检查文档与代码是否一致、产品是否真的降低了量子计算的使用门槛。

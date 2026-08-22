@@ -1,6 +1,6 @@
-# Scientific Claims Audit — LoomQ 2026 Final Candidate
+# Scientific Claims Audit — LoomQ 2026 Current Submission
 
-> 红队审查日期：2026-08-22。本文件逐条审计 candidate 中所有与量子实验结果相关的声明，
+> 红队审查日期：2026-08-22。本文件逐条审计当前提交中所有与量子实验结果相关的声明，
 > 明确每条声明的证据、允许措辞与禁止的过度声明。原则：**数据只支持它能支持的结论**。
 > Z-basis 计算基测量不能单独证明 Bell 纠缠；Z-basis GHZ population 不能单独证明 genuine multipartite entanglement。
 
@@ -100,7 +100,7 @@
 
 ## 5. 结论
 
-当前 candidate 的全部 judge-facing 声明均未超出数据支持范围。
+当前提交的全部 judge-facing 声明均未超出数据支持范围。
 
 - 2026-08-22 前：所有纠缠相关表述为否定式边界声明（"未声明证明纠缠"）。
 - 2026-08-22：按 §4 预注册标准执行了 X/Y-basis 实验。X-basis（Cxx=0.99956）触发 Y-basis；Y-basis（Cyy=−0.99865）完成三关联测量。点估计为 **\|Cxx\|+\|Czz\| = 1.99911**、**F_Φ+ = 0.99944**。复审发现 Runtime API 返回的是 provider probabilities 而非 raw counts；在缺少可验证的不确定性模型时，不能把请求的 1000 shots 直接套入 binomial 下界。因此只报告这三个 job 的点估计，不作统计性 witness 或 fidelity-threshold 声明。

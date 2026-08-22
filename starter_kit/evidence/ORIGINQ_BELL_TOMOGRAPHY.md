@@ -1,6 +1,6 @@
 # OriginQ Bell Phi+ tomography (supplemental science evidence)
 
-This package is supplemental to, and does not replace, the accepted #61 canonical hardware evidence.
+This package is supplemental to, and does not replace, the canonical two-platform hardware evidence.
 
 ## Attempts
 
