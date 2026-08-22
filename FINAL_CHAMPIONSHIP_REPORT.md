@@ -12,9 +12,9 @@
 ## B. Candidate and working tree
 
 - Candidate branch: `final-polish/first-place-runtime`
-- `HEAD`: `65ce19b207ae43bc2647f85866b041badadae8bd` (the accepted baseline; the candidate is still an uncommitted working tree and has no new candidate SHA)
-- Candidate remote: no `origin/final-polish/first-place-runtime` ref exists; nothing was committed or pushed.
-- Working tree: 8 tracked modifications plus candidate evidence, scripts, tests and reports remain untracked. `.tmp*` is now ignored; no tracked path was deleted.
+- Candidate is committed and pushed. Obtain its authoritative SHA with `git rev-parse HEAD`; the matching remote ref is `origin/final-polish/first-place-runtime`.
+- Official `prepare_submission.py --team-id wayneyu1212` preflight passed after push; it verified the fork owner, clean tree, required files and a pushed HEAD.
+- The tree was clean at preflight. `.tmp*` is ignored; no tracked path was deleted.
 
 ## C. Material improvements over #55
 
@@ -86,7 +86,7 @@ Supplemental Runtime validator: PASS — 5 packages, 5 unique jobs, non-empty QA
 
 - Security scan found 0 secret-value heuristics in `starter_kit` (OpenAI-like keys, AWS access keys, long Bearer values, Origin token assignments, private-key blocks). Symbol names and test fixtures were reviewed separately and are not credentials.
 - No `C:\\Users\\`, `UUWayne`, browser-profile path, or browser artifacts were found in candidate-facing text.
-- Candidate `starter_kit` projection: 176 files, 1,383,025 bytes (1.319 MiB), below the 100 MiB limit.
+- Candidate `starter_kit` projection: 1,391,830 bytes (1.327 MiB), below the 100 MiB limit.
 - `.tmp*` is ignored. No temporary script/log is part of the projected `starter_kit` archive.
 
 ## L. Competition context
@@ -101,6 +101,6 @@ Supplemental Runtime validator: PASS — 5 packages, 5 unique jobs, non-empty QA
 
 ## N. Recommendation
 
-**READY FOR NEW FINAL SUBMISSION: YES, pending clean commit/push and successful official preflight.**
+**READY FOR NEW FINAL SUBMISSION: YES**
 
 The official score gate is satisfied by the accepted canonical SpinQ and OriginQ packages. The five Runtime packages remain supplemental participant-side engineering/scientific evidence. No new hardware submission, Issue creation, force push, baseline rewrite, or raw-evidence overwrite was performed.
