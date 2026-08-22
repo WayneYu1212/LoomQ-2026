@@ -13,7 +13,7 @@ from .result import build_result
 
 _IMPORT_ERROR: ImportError | None
 try:
-    import pyqpanda as pq
+    import pyqpanda as pq  # type: ignore[import-untyped]
 except ImportError as exc:  # pragma: no cover - exercised in clean-env diagnostics
     pq = None
     _IMPORT_ERROR = exc

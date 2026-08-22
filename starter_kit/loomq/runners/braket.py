@@ -10,8 +10,8 @@ from .result import build_result, remap_measured_qubits
 
 _IMPORT_ERROR: ImportError | None
 try:
-    from braket.devices import LocalSimulator
-    from braket.ir.openqasm import Program
+    from braket.devices import LocalSimulator  # type: ignore[import-untyped]
+    from braket.ir.openqasm import Program  # type: ignore[import-untyped]
 except ImportError as exc:  # pragma: no cover - exercised in clean-env diagnostics
     LocalSimulator = None
     Program = None

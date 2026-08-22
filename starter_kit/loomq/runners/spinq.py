@@ -37,7 +37,7 @@ def _extract_measured_spinq_counts(
 
 _IMPORT_ERROR: ImportError | None
 try:
-    from spinqit import BasicSimulatorConfig, get_basic_simulator, get_compiler
+    from spinqit import BasicSimulatorConfig, get_basic_simulator, get_compiler  # type: ignore[import-untyped]
 except ImportError as exc:  # pragma: no cover - exercised in clean-env diagnostics
     BasicSimulatorConfig = None
     get_basic_simulator = None
