@@ -64,8 +64,8 @@ def configuration() -> dict[str, Any]:
 def doctor() -> int:
     config = configuration()
     try:
-        import qpanda3_runtime  # type: ignore[import-not-found]  # noqa: F401
-        import pyqpanda3  # type: ignore[import-not-found]  # noqa: F401
+        import qpanda3_runtime  # type: ignore[import-untyped]  # noqa: F401
+        import pyqpanda3  # type: ignore[import-untyped]  # noqa: F401
         runtime_available = True
     except ImportError:
         runtime_available = False
@@ -84,8 +84,9 @@ def submit(*, shots: int, timeout: int, poll_interval: int, confirm: bool) -> di
         raise RuntimeError("LOOMQ_ORIGINQ_TOKEN is not configured locally")
     if not confirm:
         raise RuntimeError("real hardware submission requires --confirm-real-hardware")
-    import pyqpanda3 as pq3  # type: ignore[import-not-found]
-    from qpanda3_runtime import RuntimeService  # type: ignore[import-not-found]
+    import pyqpanda3 as _pq3  # type: ignore[import-untyped]
+    from qpanda3_runtime import RuntimeService  # type: ignore[import-untyped]
+    pq3: Any = _pq3
 
     config = configuration()
     service = RuntimeService()

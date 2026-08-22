@@ -2,6 +2,8 @@
 
 LoomQ lets people without QASM or quantum-SDK experience describe intent, receive a program-verified circuit, run it through one unified backend layer, and understand both the result and its scientific boundary. The intended users are cross-disciplinary creators, humanities/social-science students, designers, product managers, and ordinary AI users—not only quantum specialists.
 
+**One language → many quantum machines:** OpenQASM is parsed once into a typed IR, verified once, and emitted to SpinQ, OriginQ and Braket. The evidence below verifies that bridge.
+
 ## 60-second map
 
 | Score area | Implementation | One verification command | Evidence |

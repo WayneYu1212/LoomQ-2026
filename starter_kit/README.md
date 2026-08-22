@@ -2,6 +2,8 @@
 
 > 用一句人话创建量子程序；用一套统一 IR 发往三个平台；在展示结果之前，先用程序验证它。
 
+> **One language → many quantum machines：** 一份 OpenQASM，经一次 typed-IR 验证，可落到 SpinQ、OriginQ 与 Braket；证据与评分说明在这一主叙事之后。
+
 > **评委 60 秒入口：** [JUDGE_GUIDE.md](JUDGE_GUIDE.md) · [评分自审](evidence/SCORECARD.md) · [最终人类清单](FINAL_HUMAN_CHECKLIST.md)
 
 LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。它不要求用户先读懂 QASM：用户描述意图，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。Hybrid-QASM 的经典控制块由独立 lexer/parser 编译为官方 stock RISC-V 子集。
@@ -23,6 +25,10 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量�
 本版本申报 L1、L2、L3、两平台真机（SpinQ + OriginQ）、自定义量子 RISC-V Bonus 与新手引导 Bonus。内部参考模拟器只用于验证，`adapter.run()` 的三个 target 都调用真实第三方 SDK；真机证据见 [evidence/README.md](evidence/README.md)，其可追溯性由组委会登录平台复核。
 
 ## 5 分钟启动
+
+## 60 秒完成第一次量子实验（完成环境启动后）
+
+点击“第一次实验”，再点击“运行实验”：你会看到本地 Bell 的 00/11 结果、验证行和“模拟器不等于真机”的边界。此路径无需模型 Key。
 
 ### Windows PowerShell
 

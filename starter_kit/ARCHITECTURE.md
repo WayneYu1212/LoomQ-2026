@@ -12,6 +12,10 @@ The immutable `Circuit` contains ordered `Gate` and `Measurement` values. All th
 
 ## Target boundaries
 
+## How to add a fourth backend
+
+No fourth backend is invented here. An adapter contributes a capability entry, an emitter from the shared `Circuit`, an SDK runner, declared native measurement ordering, normalization into the unified result schema, and the shared conformance/differential tests. The parser and typed IR stay unchanged.
+
 ### SpinQ
 
 - Artifact: complete OpenQASM 2.0.
