@@ -113,6 +113,8 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 
 参赛者在本地用真实 DeepSeek V4 Flash endpoint 对 L2 链路做了 102 例压力测试（生成/修复/后端推荐，含 adversarial 与私有 prompt 变体），101 例通过，唯一失败为 provider 偶发 transient。详见 `L2_REAL_MODEL_VALIDATION.md` 与 `files/l2-deepseek-v4-flash-stress-summary.json`。这是参赛者本地 robustness evidence，**不替代** 组织方 hidden/private L2 评测，**不代表**官方 L2 满分。
 
+Clean V2 是独立的新实验：固定 seed `20260823`，500 个 unique cases，499/500 通过，509/540 API attempts；唯一失败保留为 provider transient。详见 `L2_REAL_MODEL_VALIDATION_V2.md`、`files/l2-deepseek-v4-flash-validation-v2-summary.json` 与逐例 JSONL。V2 是 participant-side robustness evidence，**不替代**组织方 hidden/private L2 评测，**不代表**官方 L2 满分。
+
 ## 工程与产品化
 
 已有内容可以直接引用主 README 或其他项目文档，不必复制到本目录。

@@ -10,12 +10,16 @@ LoomQ lets people without QASM or quantum-SDK experience describe intent, receiv
 |---|---|---|---|
 | L1 unified layer | `loomq/compiler/`, `emitters/`, `runners/` | `.venv/bin/python evaluator.py --level l1 --target spinq,originq,braket` | `evidence/files/l1-public-report.json` |
 | L2 objective | `adapter.agent_chat`, `loomq/agent/`, `llm_client.py` | `.venv/bin/python tests/public_l2_fake.py` | `evidence/README.md` |
+| L2 historical real-model validation | Historical DeepSeek V4 Flash robustness set | `python scripts/validate_l2_stress.py` | `evidence/L2_REAL_MODEL_VALIDATION.md` — 101/102 |
+| L2 Clean V2 real-model validation | Bounded single-flight campaign, 500 unique cases | `python scripts/l2_extended_campaign.py --production --limit 500 --checkpoint 50 --resume` | `evidence/L2_REAL_MODEL_VALIDATION_V2.md` — 499/500, 509/540 attempts |
 | L2 interaction | `loomq/web/` | `.venv/bin/python -m starter_kit.loomq.web.server` from fork root | `evidence/files/web-qa-*` |
 | L3 | `loomq/hybrid/`, `adapter.compile_hybrid` | `.venv/bin/python evaluator.py --level l3` | `tests/test_hybrid_compiler.py` |
 | Engineering | shared typed IR, independent verifier, pinned SDKs, scripts | `scripts/verify.sh` | `ARCHITECTURE.md` |
 | Custom RISC-V +8 | spec + emulator + encoded E2E | `.venv/bin/python -m unittest starter_kit.tests.test_quantum_riscv_extension -v` | `QUANTUM_RISCV_EXTENSION.md` |
 | Newcomer +4 | recommended no-LLM Bell path, readable Web, evidence boundary | start Web and click **第一次实验** | `USER_GUIDE.md`, `evidence/README.md` |
 | L1 hardware +10 | genuine SpinQ + OriginQ task records | `.venv/bin/python -m starter_kit.hardware.validate_evidence evidence/files/spinq-hardware-metadata.json evidence/files/originq-hardware-metadata.json` | `evidence/HARDWARE_EVIDENCE_SUMMARY.md` |
+| Vendor SDK cross-validation | 40 fixed-seed circuits × 3 local runners | read-only evidence validator | `evidence/files/vendor-sdk-cross-validation-summary.json` — 120/120 |
+| Fixed-seed fuzz | parser, measurement, hybrid, RISC-V and security corpus | read-only evidence validator | `evidence/files/offline-fuzz-summary.json` — 35,000/35,000 |
 | OriginQ modern Runtime (supplemental) | Five separate `WK_C180_2` probability-only packages; not required for L1 hardware ladder or +10 | `.venv/bin/python starter_kit/scripts/validate_runtime_evidence.py` | `evidence/ORIGINQ_REPRODUCIBILITY.md`, `evidence/files/originq_runtime_*-manifest.json` |
 | OriginQ Bell tomography (supplemental science) | Real `WK_C180_2` Bell Φ+ tomography; supplemental, not additional L1 hardware points | `.venv/bin/python starter_kit/scripts/validate_originq_tomography.py` | `evidence/ORIGINQ_BELL_TOMOGRAPHY.md`, `evidence/files/originq-tomography/originq_tomography_bell_phi_plus-corrected-density-audit.json` |
 
