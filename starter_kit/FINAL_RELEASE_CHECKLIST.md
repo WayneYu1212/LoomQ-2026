@@ -63,7 +63,7 @@ Retained failures in the 30-case smoke are evidence, not discarded noise:
 - `SECURITY_SWEEP.md`: PASS for current tree, staged diff, history, static assets, storage-source boundary, and personal-path scan; no secret values were printed.
 - `SCIENTIFIC_CLAIMS_AUDIT.md`: PASS as a reference-based final UX wording diff; it is not a physical-expert endorsement.
 - `CLEAN_ROOM_REPRODUCTION.md`: PASS in a fresh no-hardlinks clone and new Python 3.10.11 venv; Docker was unavailable and the development `.venv` did not count.
-- `prepare_submission.py --team-id WayneYu1212`: readiness is checked after the final local commit; the no-push freeze means remote submission remains intentionally blocked.
+- `prepare_submission.py --team-id WayneYu1212`: executed after the local candidate commit; `[FAIL]` only because the current HEAD is not on any `origin` branch. This is the intentional no-push freeze, not a product or archive failure.
 
 ## Human handoff
 
