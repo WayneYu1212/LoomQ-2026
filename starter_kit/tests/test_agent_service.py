@@ -211,6 +211,37 @@ class AgentServiceTests(unittest.TestCase):
 
         self.assertIn("originq_wukong", reply)
 
+    def test_cloud_hosted_simulator_contract_selects_cloud_backend(self):
+        prompt = "需要一个 34 比特云端托管模拟器，可以付费和注册，不要本地模拟器。"
+
+        def contract_aware_completion(messages):
+            system_prompt = messages[0]["content"]
+            cloud_simulator_contract_is_explicit = (
+                'kind="cloud"' in system_prompt
+                and "cloud-hosted simulator" in system_prompt
+                and "do not add a `cloud` constraint" in system_prompt
+            )
+            content = model_plan(
+                "recommend",
+                constraints={
+                    "qubits": 34,
+                    "kind": "cloud" if cloud_simulator_contract_is_explicit else "simulator",
+                    "avoid_paid": False,
+                    "accountless": False,
+                },
+                explanation="按云端托管模拟器约束筛选",
+            )
+            return {"choices": [{"message": {"role": "assistant", "content": content}}]}
+
+        with mock.patch.object(
+            service._llm_client,
+            "chat_completion",
+            side_effect=contract_aware_completion,
+        ):
+            reply = agent_chat(prompt)
+
+        self.assertIn("braket_cloud", reply)
+
     def test_no_matching_backend_is_explained_without_inventing_an_id(self):
         reply = self.call(
             "我要运行 80 比特电路",
