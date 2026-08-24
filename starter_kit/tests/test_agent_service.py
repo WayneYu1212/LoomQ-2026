@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -7,6 +8,8 @@ from unittest import mock
 
 from starter_kit import adapter
 from starter_kit.loomq.compiler.parser import parse_qasm
+from starter_kit.loomq.agent.response import BackendConstraints
+from starter_kit.loomq.agent.selector import select_backends
 
 
 try:
@@ -125,6 +128,7 @@ class AgentServiceTests(unittest.TestCase):
         )
 
         self.assertIn(VALID_BELL.strip(), reply)
+        parse_qasm(reply[reply.index("OPENQASM 2.0;") :])
         self.assertNotIn("z q[0]", reply)
         self.assertEqual(len(QueueingAPIHandler.request_payloads), 2)
         correction_messages = QueueingAPIHandler.request_payloads[1]["messages"]
@@ -153,9 +157,24 @@ class AgentServiceTests(unittest.TestCase):
             model_plan("recommend", constraints=constraints, explanation="按约束筛选"),
         )
 
-        self.assertIn("spinq_taurus_simulator", reply)
-        self.assertIn("originq_local_simulator", reply)
-        self.assertIn("braket_local_simulator", reply)
+        expected_ids = {
+            backend["id"]
+            for backend in select_backends(
+                BackendConstraints(
+                    qubits=15,
+                    kind="simulator",
+                    zero_queue=True,
+                    avoid_paid=True,
+                    accountless=True,
+                )
+            )
+        }
+        rendered_ids = {
+            match.group(1)
+            for line in reply.splitlines()
+            if (match := re.match(r"^- ([a-z0-9_]+) — ", line))
+        }
+        self.assertEqual(rendered_ids, expected_ids)
         self.assertEqual(len(QueueingAPIHandler.request_payloads), 1)
 
     def test_no_matching_backend_is_explained_without_inventing_an_id(self):

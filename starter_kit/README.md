@@ -10,7 +10,7 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现：L1 用统一编译层�
 
 用户不必先读懂 QASM：先从一个问题和可运行实验出发，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。Hybrid-QASM 使用独立 lexer/parser，保留可审计的程序结构。
 
-![LoomQ Lab V2 桌面 GHZ 实验](evidence/files/qa-desktop-ghz-result-v2.png)
+![LoomQ Lab V7.2 零基础概念入口](evidence/files/v7.2-zero-knowledge-intro-1440.png)
 
 ## 当前交付
 
@@ -28,7 +28,7 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现：L1 用统一编译层�
 
 ## 5 分钟跑完第一次实验
 
-完成环境启动后，点击“重做刚才的 Bell 实验”，再点击“执行这个实验”：你会看到真实本地 SDK 返回的 Bell `00/11` counts、验证、解释、电路与默认展开的 OpenQASM。页面同时标明计算基结果、完整纠缠判断和真实硬件结论各自需要的证据。此路径无需模型 Key。
+完成环境启动后，先看“开始前，先认四件事”，再点击“重做刚才的 Bell 实验”和“执行这个实验”：你会看到真实本地 SDK 返回的 Bell `00/11` counts、验证、解释、电路与 OpenQASM。页面同时标明计算基结果、完整纠缠判断和真实硬件结论各自需要的证据。此路径无需模型 Key。
 
 ### Windows PowerShell
 
@@ -41,7 +41,7 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现：L1 用统一编译层�
 
 打开 `http://127.0.0.1:8765/`，点击“重做刚才的 Bell 实验”载入 Bell 示例，再点击“执行这个实验”。这个本地入口无需模型 Key，但仍真实运行所选量子 SDK；自由输入和 GHZ 等 Agent 任务需要配置 `LOOMQ_LLM_*`。
 
-V7.1 人类审核使用的 Windows 启动命令（从当前 worktree）：
+V7.2 人类审核使用的 Windows 启动命令（从当前 worktree）：
 
 ```powershell
 $Repo = (Get-Location).Path
@@ -101,7 +101,7 @@ export LOOMQ_LLM_MODEL="your-model"
 export LOOMQ_LLM_TIMEOUT_SECONDS="120"
 ```
 
-正式评测会注入 `deepseek-v4-flash`。LoomQ 不硬编码 URL、Key 或模型名；缺少配置时 Web 会给出恢复说明，本地示例仍可使用。
+正式评测会注入 `deepseek-v4-flash`。LoomQ 不硬编码 URL、Key 或模型名；缺少配置时 Web 会给出恢复说明，本地示例仍可使用。为给 L2 每个 case 的两次模型调用留出解析与验证预算，transport 会把每次请求的实际 timeout 限制为最多 `55` 秒；显式配置更小值仍按更小值执行。
 
 ## 一条命令验证
 
@@ -223,7 +223,9 @@ docker run --rm loomq-submission
 
 ## 最终提交
 
-在最终 clean、已推送的 commit 上运行：
+V7.2 当前只保留本地 candidate，`#119 / ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5` 继续作为 previous accepted fallback。除非获得明确授权，不自动 push、submit 或创建新的 Final Submission Issue。
+
+在未来获得授权、且最终 clean 并已推送的 commit 上运行：
 
 ```bash
 python3 starter_kit/prepare_submission.py --team-id WayneYu1212
@@ -231,7 +233,7 @@ python3 starter_kit/prepare_submission.py --team-id WayneYu1212
 
 随后用输出的公开 fork URL 与 40 位 SHA 创建上游“LoomQ 最终提交”Issue。只有 `submission:accepted` 标签和归档 SHA-256 回执才构成有效提交；截止为 **2026-08-25 12:00 UTC+8**。
 
-## V7 MAX Web 交付边界
+## V7.2 Web 交付边界
 
 当前 Web 入口把“看见结果 → 拆解 H/CNOT → 预测 Bell → 运行本地 Bell → 查看 X/Y/Z → 读 tomography”组织成一条新手路径。生产可编辑范围只包括 `starter_kit/loomq/web/static/index.html`、`styles.css`、`app.js` 以及本次同步的说明文档；后端、evaluator、requirements、submission.yaml、raw/hardware evidence 保持冻结。
 

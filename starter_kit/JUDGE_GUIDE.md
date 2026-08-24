@@ -1,4 +1,4 @@
-# LoomQ Judge Guide — 60-second map
+# LoomQ Judge Guide — V7.2 60-second map
 
 LoomQ lets people without QASM or quantum-SDK experience describe intent, receive a program-verified circuit, run it through one unified backend layer, and understand both the result and its scientific boundary. The intended users are cross-disciplinary creators, humanities/social-science students, designers, product managers, and ordinary AI users—not only quantum specialists.
 
@@ -6,13 +6,12 @@ LoomQ lets people without QASM or quantum-SDK experience describe intent, receiv
 
 ## 60-second experience
 
-1. 从 Hero 进入：“先看见一个结果，再走进量子世界”。
-2. 向下认识一个量子比特，并观察 `H` 如何改变可能性。
-3. 进入 Bell 故事，看见 `00/11` 相关结果。
-4. 页面把计算基相关性与需要更多测量方向的完整纠缠判断清楚分开。
-5. 点击 **重做刚才的 Bell 实验**，载入同一条 Bell 电路。
-6. 点击 **执行这个实验**，检查真实本地 SDK 返回的 counts、解释、电路与 QASM。
-7. 继续滚动到 tomography 与硬件证据，确认多方向测量、数学重建与可追溯证据的关系。
+1. 从 Hero 进入 **开始前，先认四件事**：量子计算、量子比特、今天的 Bell 实验和四个基础符号。
+2. 向下只看一个量子比特，先理解 `|0⟩` 是起点，再观察 `H` 如何改变重复测量的分布。
+3. 进入两量子比特故事，先认识 CNOT 的控制位/目标位规则，再看 Bell 的 `00/11` 相关结果。
+4. 点击 **重做刚才的 Bell 实验**，载入同一条 Bell 电路；第一次体验不需要模型 Key。
+5. 点击 **执行这个实验**，检查真实本地 SDK 返回的 counts、解释、电路、OpenQASM 与验证结果。
+6. 继续滚动到 X/Y/Z、tomography 与硬件说明，确认多方向测量、数学重建和可追溯证据的关系。
 
 ## Technical evidence map
 
@@ -67,10 +66,8 @@ Formal judging injects `LOOMQ_LLM_*` server-side and calls `adapter.agent_chat()
 
 Open `http://127.0.0.1:8765/`. Evidence is under `starter_kit/evidence/`; architecture boundaries are in `ARCHITECTURE.md`. Simulator results are never described as real-QPU evidence.
 
-## V7 MAX 评委 60 秒核验
+## Detailed scientific and provenance note
 
-先点 Hero 的“把这个结果拆开看”，确认单 qubit 页面显示“测量后仍读到 0 或 1”；再观察 H 让重复分布变成约 50/50、CNOT 的控制位/目标位规则，以及 Bell 的 `00/11` 预测。点“重做刚才的 Bell 实验”并运行 1024 shots，确认 counts、验证、circuit 和默认展开的 OpenQASM 同时出现。继续到 X/Y/Z 面板，三次切换应显示 `Czz = 0.99955`、`Cxx = 0.99956`、`Cyy = -0.99865`，再读 tomography 的 Fidelity `0.952449`、PPT `λmin -0.4561` 与不确定性边界。
+先看 Hero 的“把这个结果拆开看”，确认单 qubit 页面显示“测量后仍读到 0 或 1”；再观察 H 让重复分布变成约 50/50、CNOT 的控制位/目标位规则，以及 Bell 的 `00/11` 预测。点击“重做刚才的 Bell 实验”并运行 1024 shots，可看到 counts、验证、circuit 和 OpenQASM；继续到 X/Y/Z 面板，可看到 `Czz = 0.99955`、`Cxx = 0.99956`、`Cyy = -0.99865`，再读 tomography 的 Fidelity `0.952449`、PPT `λmin -0.4561` 与不确定性边界。
 
-页面的“评委证据路线”按三层排列：先看可计分的 SpinQ + OriginQ canonical hardware（任务、实际 QASM、原始结果与 validator 路径），再看 Origin Wukong X/Y/Z 与 tomography 的 supplemental science 回放，最后看 Agent 生成/修复/推荐、统一 typed IR、L3 Hybrid-QASM 与 Custom RISC-V 工程证据。Bell 主入口不调用模型；正式 L2 评测由服务端注入 `LOOMQ_LLM_*`。
-
-本页是归档证据回放，不会提交新的硬件任务。既有 provenance 不一致按已授权规则记录：metadata 为 `a56b4e20039f…`，当前 raw JSON、density audit 和 `SHA256SUMS.txt` 为 `9f7b903131aa…`；评审时不要把两者描述成完全一致，也不要修改 raw evidence。
+本页是归档证据回放，不会提交新的硬件任务。既有 provenance 不一致按已授权规则记录：metadata 为 `a56b4e20039f…`，当前 raw JSON、density audit 和 `SHA256SUMS.txt` 为 `9f7b903131aa…`；不要把两者描述成完全一致，也不要修改 raw evidence。

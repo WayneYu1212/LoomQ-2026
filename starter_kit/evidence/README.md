@@ -104,7 +104,7 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 1. `我完全不懂量子，带我完成一个最简单的纠缠实验。`
 2. `我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。保持原意并修好。`
 3. `我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？`
-截图或演示视频：`evidence/files/web-qa-homepage-1440.png`、`evidence/files/web-qa-homepage-1366.png`、`evidence/files/web-qa-bell-no-llm-1440.png`、`evidence/files/web-qa-agent-connected-1440.png`、`evidence/files/web-qa-homepage-390.png`、`evidence/files/web-qa-bell-390.png`
+截图或演示视频：`evidence/files/v7.2-zero-knowledge-intro-1440.png`、`evidence/files/v7.2-bell-result-openqasm-1440.png`、`evidence/files/v7.2-api-optional-390.png`、`evidence/files/v7.2-mobile-full-390.png`
 ```
 
 工作人员会在组委会统一模型环境中运行最终代码，测试新手是否看得懂、出错后能否得到有效帮助、结果是否清楚，以及多轮回答是否一致。选手自己的对话截图只用于说明产品流程，不直接证明得分。
@@ -123,7 +123,7 @@ Clean V2 是独立的新实验：固定 seed `20260823`，500 个 unique cases�
 干净环境中的构建和启动命令：`README.md` 的“5 分钟启动”和“一条命令验证”；Windows `.\starter_kit\scripts\setup.ps1` 后运行 `.\starter_kit\scripts\verify.ps1`
 架构说明：`ARCHITECTURE.md`；一个 parser/typed IR，三个 emitter 和三个真实 SDK runner，独立 verifier 不冒充 target
 目标用户和使用场景：没有量子背景的人文社科学生、设计师、产品经理、艺术创作者与普通 AI 用户，在五分钟内完成第一次可解释、可验证的量子实验
-完整使用流程：`USER_GUIDE.md`、`evidence/files/web-qa-bell-no-llm-1440.png`、`evidence/files/web-qa-agent-connected-1440.png`、`evidence/files/web-qa-bell-390.png`
+完整使用流程：`USER_GUIDE.md`、Web 首页“开始前，先认四件事” → Bell → run、`evidence/files/v7.2-zero-knowledge-intro-1440.png`、`evidence/files/v7.2-bell-result-openqasm-1440.png`、`evidence/files/v7.2-api-optional-390.png`
 ```
 
 工作人员会按最终 commit 实际构建和启动，并检查文档与代码是否一致、产品是否真的降低了量子计算的使用门槛。
@@ -143,7 +143,7 @@ Clean V2 是独立的新实验：固定 seed `20260823`，500 个 unique cases�
 请填写已有材料的路径，不要求为评分另写一套文档：
 
 ```text
-零基础首次运行指南：`USER_GUIDE.md` 的“Offline five-minute path”；Web 首页“第一次实验”本地 Bell 入口与三个快捷入口
+零基础首次运行指南：`USER_GUIDE.md` 的“Offline five-minute path”；Web 首页“开始前，先认四件事” → “第一次实验”本地 Bell 入口。第一次 Bell 体验不需要模型 Key。
 量子概念解释：`USER_GUIDE.md` 的“Three ideas you need”与 Web 的“验证与解释 / 这证明了什么”
 结果可视化：`loomq/web/static/` 中的电路 rails、counts bars 及并列表格；截图见 `evidence/files/`
 错误恢复或无障碍引导：`loomq/web/server.py` 的结构化恢复错误；HTML labels/live region/skip link；键盘焦点进入结果区；reduced-motion 与移动单列 CSS

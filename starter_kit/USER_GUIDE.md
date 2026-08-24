@@ -6,15 +6,15 @@
 
 1. 按 `README.md` 的命令完成安装并启动 Web 服务。
 2. 打开 `http://127.0.0.1:8765/`。
-3. 点击 **重做刚才的 Bell 实验**，载入已经讲过的 Bell 电路。
-4. 选择任意一个本地后端，点击 **执行这个实验**。
-5. 在 **你刚刚看见了什么？** 中查看 counts、解释、电路和默认展开的 QASM，再向下读 **如果还想把这个状态看得更完整**。
+3. 先读 **开始前，先认四件事**，认识量子计算、量子比特、Bell 实验和 `|0⟩` / `H` / `CNOT` / `M`。
+4. 点击 **重做刚才的 Bell 实验**，载入已经讲过的 Bell 电路；第一次体验不需要模型 Key。
+5. 选择任意一个本地后端，点击 **执行这个实验**，再查看 counts、解释、电路和 OpenQASM。
 
 不要把 `loomq/web/static/index.html` 当作 `file://` 页面打开；静态页面无法连接 Python SDK 服务。若误开，LoomQ 会给出正确的启动地址，不会把它误报为模型 Key 问题。
 
 这条 Bell 路径不需要模型 Key。自由输入的 Agent 任务才使用服务端注入的 `LOOMQ_LLM_*`，浏览器不要求输入 Key，也不会把密钥写入 LocalStorage。
 
-## V7.1 Windows 本地服务
+## V7.2 Windows 本地服务
 
 从当前仓库启动 Web 的唯一必要命令是：
 
@@ -68,12 +68,12 @@ An ideal local simulator can show that the program implements the intended mathe
 - **Counts look slightly uneven**: sampling fluctuation is expected. Use 8192 shots for scoring comparisons.
 - **Port 8765 is busy**: start with `--port 8766` and open that address.
 
-## V7 MAX 页面路线
+## V7.2 页面路线
 
-页面从一个可见的 `00 / 11` 结果开始，依次解释单 qubit、H、CNOT、shots、Bell、OpenQASM、真实返回和 X/Y/Z 归档证据。第一次出现的概念总是先讲刚刚发生的现象，再给名称和公式；科学边界随后单独展开。
+页面从“开始前，先认四件事”开始，再依次解释单 qubit、H、CNOT、shots、Bell、OpenQASM、真实返回和 X/Y/Z 归档证据。第一次出现的概念总是先讲刚刚发生的现象，再给名称和公式；科学边界随后单独展开。
 
 - X/Y/Z 面板是三个独立归档作业的交互回放：`Czz = 0.99955`、`Cxx = 0.99956`、`Cyy = -0.99865`。
 - tomography 卡片展示 provider 重建点估计：Fidelity `0.952449` 与 PPT `λmin -0.4561`，并说明这不是统计置信区间或量子优势声明。
-- 评委证据路线先指向可计分的 SpinQ + OriginQ canonical hardware，再指向 Wukong X/Y/Z、tomography 与 Agent / L3 / Custom RISC-V 的补充与工程材料；页面只回放已有证据。
+- 证据说明先指向已归档的 SpinQ + OriginQ canonical hardware，再指向 Wukong X/Y/Z、tomography 与 Agent / L3 / Custom RISC-V 的补充与工程材料；页面只回放已有证据。
 - 英文界面与中文界面共用同一条实验路径；移动端优先保留原生按钮、可见 shots/backend 帮助和可展开 OpenQASM。
 - 归档证据的英文边界句是：`This page is replaying evidence; it is not submitting a new hardware job.`

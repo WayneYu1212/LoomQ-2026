@@ -1,17 +1,16 @@
-# Accepted baseline checklist — Issue #55 reference archive
+# V7.2 human checklist — previous accepted fallback
 
-> 本文件只记录已提交并 accepted 的 **Issue #55 / `65ce19b`** 基线，不是当前未提交 candidate 的状态声明。
-> 当前 candidate 的新增证据和回归结论必须单独审核；本基线清单不得被解读为新的提交或新的官方成绩。
+> 本文件把 **#119 / `ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5`** 作为 previous accepted fallback，不是新的提交或新的官方成绩。
+> 当前 V7.2 candidate：`<V7.2 SHA>`（commit 前保持 placeholder；candidate 仍需人工审核）。
+> 当前 candidate 的新增文档、L2 hardening 与回归结论必须单独审核；不得把本清单解读为新的官方成绩。
 > 两平台真机证据（SpinQ + OriginQ）已完成并归档；不需要再运行任何真机任务或消耗配额。
 
 ## 最终提交状态
 
-- 上游 Issue：**#55**（Final Submission）
-- 分支：`max-score/final-112`
-- 提交 SHA：`65ce19b207ae43bc2647f858666b041badadae8bd`
-- 状态：`submission:accepted`
-- 归档 Artifact：`submission-wayneyu1212-issue-55`
-- 归档 SHA-256：`5bda74d65b8d882dbfa61b40e5ea0802de753e0969c41123ab3af73c774f592d`
+- Previous accepted fallback：**#119**
+- Previous accepted SHA：`ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5`
+- Current candidate SHA：`<V7.2 SHA>`
+- 状态：`V7.2 candidate pending human review; #119 remains fallback`
 - 理论满分上限：`112`（以官方评审为准，不代表已获得该分数）
 
 ## 已归档的真机证据
@@ -40,10 +39,9 @@
 git diff --check
 git status --short
 git rev-parse HEAD
-git ls-remote origin max-score/final-112
 ```
 
-- 本地 HEAD 应等于 remote 分支 SHA 与 receipt SHA。
+- 本地 HEAD、branch 与 candidate SHA 必须在人工审核时单独核对；本轮不自动 push 或创建新的 Final Submission Issue。
 - 若需重新生成 L1 软件模拟器回归报告（仅软件，不影响真机证据）：
   `.\.venv\Scripts\python.exe starter_kit\evaluator.py --level l1 --target spinq,originq,braket --json-out starter_kit\evidence\files\l1-public-report.json`
 
@@ -51,4 +49,4 @@ git ls-remote origin max-score/final-112
 
 - 不要提交任何 API Key、Token、Cookie、个人身份信息或平台账户隐私。
 - 不要修改 `evidence/files/` 下的原始导出（`*.raw.*`）或截图。
-- 不要重新提交已 accepted 的最终提交；如需更新，须先确认候选版本确实优于 #55。
+- 不要修改或覆盖 #119 fallback；如需发起新的 submission，须先完成人工审核并获得明确授权。
