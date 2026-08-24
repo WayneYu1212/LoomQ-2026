@@ -17,15 +17,22 @@ class MarkupAudit(HTMLParser):
         self.buttons_without_type = []
         self.live_regions = 0
         self.details_count = 0
+        self.open_details = set()
         self.external_resources = []
         self.text = []
+        self.visible_text = []
         self.ids = set()
         self.classes = set()
+        self.hrefs = set()
+        self.hidden_stack = []
+        self.void_tags = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
         if attributes.get("id"):
             self.ids.add(attributes["id"])
+        if attributes.get("href", "").startswith("#"):
+            self.hrefs.add(attributes["href"][1:])
         self.classes.update(attributes.get("class", "").split())
         if tag == "h1":
             self.h1_count += 1
@@ -37,6 +44,12 @@ class MarkupAudit(HTMLParser):
             self.live_regions += 1
         if tag == "details":
             self.details_count += 1
+            if "open" in attributes:
+                self.open_details.add(attributes.get("id", ""))
+        if tag not in self.void_tags:
+            inherited_hidden = any(self.hidden_stack)
+            hidden = inherited_hidden or "hidden" in attributes or (tag == "details" and "open" not in attributes)
+            self.hidden_stack.append(hidden)
         for name in ("src", "href"):
             value = attributes.get(name, "")
             if value.startswith(("http://", "https://", "//")):
@@ -44,6 +57,14 @@ class MarkupAudit(HTMLParser):
 
     def handle_data(self, data):
         self.text.append(data)
+        if not any(self.hidden_stack):
+            self.visible_text.append(data)
+
+    def handle_endtag(self, tag):
+        if tag in self.void_tags:
+            return
+        if self.hidden_stack:
+            self.hidden_stack.pop()
 
 
 class WebAssetContractTests(unittest.TestCase):
@@ -56,55 +77,202 @@ class WebAssetContractTests(unittest.TestCase):
         for name, path in self.paths.items():
             self.assertTrue(path.is_file(), f"missing {name} asset: {path}")
 
-    def test_markup_has_one_clear_task_and_accessible_controls(self):
+    def test_markup_has_v7_five_act_story_and_accessible_controls(self):
         audit = MarkupAudit()
-        audit.feed(self.paths["html"].read_text(encoding="utf-8"))
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        audit.feed(markup)
         page_text = " ".join(audit.text)
+        compact_text = "".join(page_text.split())
 
         self.assertEqual(audit.h1_count, 1)
         self.assertTrue({"prompt", "target", "shots"}.issubset(audit.labels))
         self.assertEqual(audit.buttons_without_type, [])
-        self.assertGreaterEqual(audit.live_regions, 1)
-        self.assertGreaterEqual(audit.details_count, 1)
+        self.assertGreaterEqual(audit.live_regions, 2)
+        self.assertGreaterEqual(audit.details_count, 3)
         self.assertEqual(audit.external_resources, [])
-        self.assertIn("把一句话", page_text)
-        self.assertIn("这证明了什么", page_text)
-        self.assertIn("推荐", page_text)
-        self.assertIn("无需 LLM", page_text)
-        self.assertIn("1 描述", page_text)
-        self.assertIn("评测环境自动连接", page_text)
-        self.assertIn("评测 / 本地调试说明", page_text)
-        self.assertIn("当前打开的是静态文件", page_text)
-        self.assertTrue({"launch-notice", "runtime-status", "runtime-status-copy"}.issubset(audit.ids))
+        for required in (
+            "为什么这份只有两个量子比特的电路",
+            "先只看一个量子比特",
+            "再把两个量子比特连起来",
+            "CNOT",
+            "00",
+            "11",
+            "重复次数",
+            "OpenQASM",
+            "换个方向，再看同一个状态",
+            "已归档真机数据 · Origin Wukong 180-2",
+            "量子态层析",
+            "Fidelity",
+            "0.952449",
+            "PPT",
+            "-0.4561",
+            "量子电路程序 · OpenQASM",
+            "If you wish to make an apple pie from scratch",
+            "Carl Sagan · Cosmos · 1980",
+        ):
+            self.assertIn("".join(required.split()), compact_text)
+        for removed_copy in (
+            "CHAPTER ONE",
+            "CHAPTER TWO",
+            "A MORE PRECISE VIEW",
+            "ARCHIVED PROVIDER EVIDENCE",
+            "量子态层析会换多个测量方向收集数据",
+        ):
+            self.assertNotIn(removed_copy, page_text)
+        self.assertIn('data-example="bell"', markup)
+        self.assertIn('data-value="Czz = 0.99955"', markup)
+        self.assertIn('data-value="Cxx = 0.99956"', markup)
+        self.assertIn('data-value="Cyy = -0.99865"', markup)
+        self.assertNotIn('class="header-nav"', markup)
+        self.assertIn('data-language-label>中 / EN', markup)
+        self.assertIn("This page shows saved run records.", page_text)
+        self.assertTrue(
+            {
+                "launch-notice",
+                "runtime-status",
+                "runtime-status-copy",
+                "experiment-form",
+                "workspace",
+                "qasm-code",
+                "qubit-story-line",
+                "bell-story-line",
+                "language-toggle",
+                "h-gate-help",
+                "cnot-help",
+                "shots-help",
+                "backend-help",
+                "agent-tasks",
+                "judge-evidence",
+                "bell-prediction",
+                "prediction-feedback",
+                "pauli-tabs",
+                "pauli-panel",
+                "tomography",
+            }.issubset(audit.ids)
+        )
+        self.assertTrue(
+            {"possibility-line", "scroll-float", "science-note", "result-boundary", "term-help", "prediction-choice", "pauli-tab"}.issubset(audit.classes)
+        )
+        self.assertIn("qasm-disclosure", audit.open_details)
+        self.assertTrue({"top", "qubit", "bell", "flow", "experiment", "workspace", "evidence", "tomography"}.issubset(audit.ids))
+        self.assertNotIn("particle-canvas", audit.ids)
+        self.assertNotIn("<canvas", markup)
+        self.assertIn("data-scroll-float", markup)
+        self.assertIn("data-stroke-char", markup)
+        self.assertIn("data-fill-char", markup)
+        self.assertIn("<clipPath", markup)
 
-    def test_css_contains_responsive_motion_and_touch_guardrails(self):
-        css = self.paths["css"].read_text(encoding="utf-8")
-
-        self.assertIn("prefers-reduced-motion: reduce", css)
-        self.assertIn("max-width: 767px", css)
-        self.assertIn("--text-primary:", css)
-        self.assertIn("--border-default:", css)
-        self.assertIn("min-height: 44px", css)
-        self.assertIn("@media (min-width: 1024px)", css)
-        self.assertIn("white-space: nowrap", css)
-        self.assertIn(".runtime-status", css)
-
-    def test_javascript_uses_safe_dom_rendering_and_same_origin_api(self):
+    def test_v71_public_audience_launch_and_anchor_contract(self):
+        audit = MarkupAudit()
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        audit.feed(markup)
         script = self.paths["js"].read_text(encoding="utf-8")
+        visible_page_text = " ".join(audit.visible_text)
+        for forbidden_visible in (
+            "评委证据路线",
+            "可计分",
+            "正式评审路径",
+            "工程实现的独立验证",
+            "补充科学",
+            "provenance hash discrepancy",
+            "回到 Agent 入口",
+        ):
+            self.assertNotIn(forbidden_visible, visible_page_text)
+        self.assertIn('id="judge-evidence" hidden', markup)
+        for required in (
+            "initV71PublicExperience",
+            "真实机器上的运行记录",
+            "真实任务记录 · 实际 QASM · 原始返回结果",
+            "想自己问一个量子问题？回到实验区 ↑",
+            "technical-disclosure-v71",
+            "multi-view-diagram",
+            "science-boundary-disclosure",
+            "scrollIntoView",
+            "H 改变了状态，重复测量显出了分布。",
+            "加入 CNOT：第一个是控制位，第二个是目标位。",
+            "理想 Bell 电路最后主要留下 00 和 11，各约一半。",
+            "每个测量方向都只告诉我们一部分信息。",
+            "PPT 纠缠检验",
+        ):
+            self.assertIn(required, script)
+        self.assertTrue(audit.hrefs.issubset(audit.ids), sorted(audit.hrefs - audit.ids))
+        user_guide = (STATIC.parents[2] / "USER_GUIDE.md").read_text(encoding="utf-8")
+        self.assertIn("-m starter_kit.loomq.web.server --host 127.0.0.1 --port 8765", user_guide)
+        self.assertNotIn("npm run dev", user_guide)
 
-        self.assertIn("fetch('/api/experiment'", script)
-        self.assertIn("fetch('/api/health'", script)
-        self.assertIn("window.location.protocol === 'file:'", script)
-        self.assertIn("agent_unavailable", script)
-        self.assertIn("invalid_request", script)
-        self.assertIn("execution_failed", script)
-        self.assertIn("textContent", script)
-        self.assertNotIn("innerHTML", script)
-        self.assertNotIn("localStorage", script)
-        self.assertNotIn("sessionStorage", script)
-        self.assertNotIn("LOOMQ_LLM_API_KEY", script)
-        self.assertNotIn("http://", script)
-        self.assertNotIn("https://", script)
+    def test_css_has_v7_tokens_responsive_motion_and_touch_guardrails(self):
+        css = self.paths["css"].read_text(encoding="utf-8")
+        for required in (
+            "--page: #FFFFFF",
+            "--surface: #FFFFFF",
+            "--blue: #0071E3",
+            "--text-primary:",
+            "--border-default:",
+            "--lh-display:",
+            "--lh-heading:",
+            "--lq-accent:",
+            "min-height: 44px",
+            "text-wrap: balance",
+            ".pauli-tabs",
+            ".prediction-choice",
+            ".title-reveal",
+            ".spotlight-card",
+            ".line-sidebar",
+            ".runtime-status",
+            ".result-boundary",
+            "prefers-reduced-motion: reduce",
+            "max-width: 767px",
+            "min-width: 1024px",
+            "min-width: 1280px",
+            "scroll-margin-top: 72px",
+        ):
+            self.assertIn(required, css)
+        self.assertNotIn("--glow-angle", css)
+        self.assertNotIn("#16191F", css)
+        self.assertNotIn(".historian-note", css)
+        self.assertNotIn("translateY(120%) scaleY(2.3)", css)
+
+    def test_javascript_uses_safe_dom_rendering_same_origin_api_and_v7_interactions(self):
+        script = self.paths["js"].read_text(encoding="utf-8")
+        for required in (
+            "fetch('/api/experiment'",
+            "fetch('/api/health'",
+            "window.location.protocol === 'file:'",
+            "agent_unavailable",
+            "invalid_request",
+            "execution_failed",
+            "textContent",
+            "document.documentElement.lang",
+            "toggleAttribute('hidden'",
+            "prediction-choice",
+            "prediction-feedback",
+            "pauli-tab",
+            "Czz = 0.99955",
+            "Cxx = 0.99956",
+            "Cyy = -0.99865",
+            "aria-selected",
+            "IntersectionObserver",
+            "requestAnimationFrame",
+            "stepperFinish.hidden = false",
+        ):
+            self.assertIn(required, script)
+        for forbidden in (
+            "innerHTML",
+            "localStorage",
+            "sessionStorage",
+            "LOOMQ_LLM_API_KEY",
+            "http://",
+            "https://",
+            "translateY(120%)",
+            "scaleY(2.3)",
+            "setInterval(",
+            "quantumFieldLoop",
+            "particleCanvas",
+        ):
+            self.assertNotIn(forbidden, script)
+        self.assertIn("getBoundingClientRect", script)
+        self.assertIn("updateStrokeViewport", script)
+        self.assertNotIn("edgeDistance", script)
 
     def test_javascript_required_dom_selectors_exist_in_markup(self):
         audit = MarkupAudit()
@@ -119,20 +287,71 @@ class WebAssetContractTests(unittest.TestCase):
             collection = audit.ids if selector.startswith("#") else audit.classes
             if selector[1:] not in collection:
                 missing.append(selector)
-
         self.assertEqual(missing, [], f"JavaScript references missing DOM selectors: {missing}")
 
-    def test_quantum_field_keeps_v2_motion_and_reduced_motion_contract(self):
+    def test_v7_has_bounded_interactions_without_idle_loop(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        script = self.paths["js"].read_text(encoding="utf-8")
+        for forbidden in (
+            "quantumFieldLoop",
+            "drawFieldConnections",
+            "pauseQuantumField",
+            "resumeQuantumField",
+            "fieldNodes",
+            "particleCanvas",
+            "measurementCanvas",
+            "initMeasurementCanvas",
+            "drawMeasurement",
+            "setInterval(",
+            "document.addEventListener('pointermove'",
+            'document.addEventListener("pointermove"',
+        ):
+            self.assertNotIn(forbidden, script)
+        self.assertNotIn("particle-canvas", markup)
+        self.assertIn("updateScrollTutorials", script)
+        self.assertIn("scheduleScrollUpdate", script)
+        self.assertIn("initStepper", script)
+        self.assertIn("initSpotlightCards", script)
+        self.assertIn("initLineSidebar", script)
+        self.assertIn("prefers-reduced-motion", script)
+        self.assertIn("#qubit-story-line", script)
+        self.assertIn("#bell-story-line", script)
+
+    def test_v71_final_micro_patch_contract(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        css = self.paths["css"].read_text(encoding="utf-8")
         script = self.paths["js"].read_text(encoding="utf-8")
 
-        self.assertIn("isMobile ? 22 : 38", script)
-        self.assertIn("Math.sin", script)
-        self.assertIn("Math.cos", script)
-        self.assertIn("drawFieldConnections", script)
-        self.assertIn("distance < 160", script)
-        self.assertIn("motionQuery.addEventListener('change'", script)
-        self.assertIn("pauseQuantumField", script)
-        self.assertNotIn("interference-layer", script)
+        for required in (
+            'class="result-card result-source-card"',
+            'class="result-source-grid"',
+            'class="result-source-circuit"',
+            'id="qasm-disclosure" open',
+            'h-narrative-copy',
+            '把同一份电路重复很多次，0 和 1 会各出现大约一半。',
+            '这种准备方式会得到一种均匀叠加状态。',
+            '每次测量仍然只留下一个结果。',
+            'id="model-disclosure"',
+            '如何连接自己的模型？',
+            'LOOMQ_LLM_BASE_URL',
+            'LOOMQ_LLM_API_KEY',
+            'LOOMQ_LLM_MODEL',
+            'LOOMQ_LLM_TIMEOUT_SECONDS',
+            'class="disclosure-marker"',
+        ):
+            self.assertIn(required, markup)
+        self.assertNotIn("正式评测由服务端注入模型", markup)
+        self.assertNotIn("Formal judging injects the model server-side", markup)
+        self.assertIn("makeDisclosureSummary", script)
+        for required in (
+            ".result-source-grid",
+            "grid-template-columns: repeat(2, minmax(0, 1fr))",
+            "@media (max-width: 899px)",
+            "details[open] > summary .disclosure-marker",
+            "summary:focus-visible",
+            ".h-narrative-copy .sentence-line",
+        ):
+            self.assertIn(required, css)
 
     def test_server_module_help_starts_without_runtime_warning(self):
         repository_root = Path(__file__).resolve().parents[2]
@@ -143,7 +362,6 @@ class WebAssetContractTests(unittest.TestCase):
             capture_output=True,
             check=False,
         )
-
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertNotIn("RuntimeWarning", completed.stderr)
 

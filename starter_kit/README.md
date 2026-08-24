@@ -1,12 +1,14 @@
 # LoomQ Lab
 
-> 用一句人话创建量子程序；用一套统一 IR 发往三个平台；在展示结果之前，先用程序验证它。
+> LoomQ 从一个问题开始，把它变成一份可以运行、验证和解释的量子实验。
 
 > **One language → many quantum machines：** 一份 OpenQASM，经一次 typed-IR 验证，可落到 SpinQ、OriginQ 与 Braket；证据与评分说明在这一主叙事之后。
 
 > **评委 60 秒入口：** [JUDGE_GUIDE.md](JUDGE_GUIDE.md) · [评分自审](evidence/SCORECARD.md) · [最终人类清单](FINAL_HUMAN_CHECKLIST.md)
 
-LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。它不要求用户先读懂 QASM：用户描述意图，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。Hybrid-QASM 的经典控制块由独立 lexer/parser 编译为官方 stock RISC-V 子集。
+LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现：L1 用统一编译层连接 SpinQ、OriginQ 与 Braket 三个后端；L2 把自然语言意图转为经过程序自验的电路；L3 将 Hybrid-QASM 的经典控制块编译为官方 stock RISC-V 子集。它面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。
+
+用户不必先读懂 QASM：先从一个问题和可运行实验出发，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。Hybrid-QASM 使用独立 lexer/parser，保留可审计的程序结构。
 
 ![LoomQ Lab V2 桌面 GHZ 实验](evidence/files/qa-desktop-ghz-result-v2.png)
 
@@ -20,15 +22,13 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量�
 - **L3 混合编译**：真正解析多 classical block、嵌套分支、测量位与顺序赋值，输出保序量子操作和 stock RISC-V。
 - **Custom Quantum RISC-V**：稳定 `custom-0` 32-bit 编码与确定性 coprocessor trace；不冒充量子模拟或硬件。
 - **两平台真机证据**：SpinQ 2 比特核磁硬件与 Origin Wukong 180-2 的可追溯任务、原始导出和隐私安全截图。
-- **一页式入口**：桌面与移动 Web、可访问电路图、真实证据链、counts 图表/表格、QASM 折叠与错误恢复。
+- **一页式入口**：桌面与移动 Web、可访问电路图、真实证据链、counts 图表/表格、默认展开的浅色 QASM 与错误恢复。
 
 本版本申报 L1、L2、L3、两平台真机（SpinQ + OriginQ）、自定义量子 RISC-V Bonus 与新手引导 Bonus。内部参考模拟器只用于验证，`adapter.run()` 的三个 target 都调用真实第三方 SDK；真机证据见 [evidence/README.md](evidence/README.md)，其可追溯性由组委会登录平台复核。
 
-## 5 分钟启动
+## 5 分钟跑完第一次实验
 
-## 60 秒完成第一次量子实验（完成环境启动后）
-
-点击“第一次实验”，再点击“运行实验”：你会看到本地 Bell 的 00/11 结果、验证行和“模拟器不等于真机”的边界。此路径无需模型 Key。
+完成环境启动后，点击“重做刚才的 Bell 实验”，再点击“执行这个实验”：你会看到真实本地 SDK 返回的 Bell `00/11` counts、验证、解释、电路与默认展开的 OpenQASM。页面同时标明计算基结果、完整纠缠判断和真实硬件结论各自需要的证据。此路径无需模型 Key。
 
 ### Windows PowerShell
 
@@ -39,7 +39,16 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现，面向从未接触量�
 .\.venv\Scripts\python.exe -m starter_kit.loomq.web.server
 ```
 
-打开 `http://127.0.0.1:8765/`，点击“第一次实验”载入 Bell 纠缠示例，再点击“运行实验”。这个本地入口无需模型 Key，但仍真实运行所选量子 SDK；自由输入和 GHZ 等 Agent 任务需要配置 `LOOMQ_LLM_*`。
+打开 `http://127.0.0.1:8765/`，点击“重做刚才的 Bell 实验”载入 Bell 示例，再点击“执行这个实验”。这个本地入口无需模型 Key，但仍真实运行所选量子 SDK；自由输入和 GHZ 等 Agent 任务需要配置 `LOOMQ_LLM_*`。
+
+V7.1 人类审核使用的 Windows 启动命令（从当前 worktree）：
+
+```powershell
+$Repo = (Get-Location).Path
+$Py = Join-Path $Repo '.venv\Scripts\python.exe'
+Set-Location $Repo
+& $Py -X utf8 -m starter_kit.loomq.web.server --host 127.0.0.1 --port 8765
+```
 
 不要双击 `starter_kit/loomq/web/static/index.html`：`file://` 只能显示静态界面，无法连接 Python SDK 后端。若误开，页面会给出本地服务启动地址，不会误报成 LLM 配置错误。
 
@@ -221,3 +230,11 @@ python3 starter_kit/prepare_submission.py --team-id WayneYu1212
 ```
 
 随后用输出的公开 fork URL 与 40 位 SHA 创建上游“LoomQ 最终提交”Issue。只有 `submission:accepted` 标签和归档 SHA-256 回执才构成有效提交；截止为 **2026-08-25 12:00 UTC+8**。
+
+## V7 MAX Web 交付边界
+
+当前 Web 入口把“看见结果 → 拆解 H/CNOT → 预测 Bell → 运行本地 Bell → 查看 X/Y/Z → 读 tomography”组织成一条新手路径。生产可编辑范围只包括 `starter_kit/loomq/web/static/index.html`、`styles.css`、`app.js` 以及本次同步的说明文档；后端、evaluator、requirements、submission.yaml、raw/hardware evidence 保持冻结。
+
+评委在页面的“评委证据路线”可先看计分真机 SpinQ + OriginQ，再看 Wukong X/Y/Z 与 tomography 补充科学，最后查看 Agent 三任务、统一 typed IR、L3 Hybrid-QASM 与 Custom RISC-V 的工程验证路径。该入口只导航现有材料，不生成新的 job 或硬件声明。
+
+页面会把 `00/11` 明确写成计算基相关性，把 X/Y/Z 三个归档方向写成完整状态描述所需的更多信息，并把 Fidelity `0.952449` / PPT `-0.4561` 限定为 provider 重建点估计。归档哈希的既有 provenance discrepancy 如实保留：metadata 记录 `a56b4e20039f…`，当前 raw JSON、density audit 与 `SHA256SUMS.txt` 记录 `9f7b903131aa…`；本轮没有改写任何 raw bytes 或科学数值。
