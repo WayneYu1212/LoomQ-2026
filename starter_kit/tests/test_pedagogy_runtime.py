@@ -64,7 +64,7 @@ class BellTopologyAndPedagogyTests(unittest.TestCase):
             "CNOT 本身不等于“纠缠”",
             "在 Z 基测量理想 Bell Φ+ 态时，只会得到 00 或 11，各约 50%。",
             "shots 是把同一份电路重新准备并测量很多次。",
-            "理想 / 本地教学可视化",
+            "这里先用理想模拟把规律演示出来",
         ):
             self.assertIn("".join(required.split()), compact)
         for required in (
@@ -89,14 +89,14 @@ class JudgeAlignedBeginnerUxTests(unittest.TestCase):
             'id="outcome-first"',
             'id="agent-entry"',
             'id="circuit-inspect"',
-            "不懂量子也可以。先跑一次，再看发生了什么。",
-            "LoomQ 会把你的自然语言变成量子电路、检查它、选择后端并把结果翻译成人话。",
-            "带我完成第一次实验",
-            "我有自己的问题",
+            "先看结果，再一步步看它是怎么发生的。",
+            "看懂以后，你也可以直接把自己的问题交给 LoomQ。",
+            "跟着做一次完整实验",
+            "已经懂基础？直接问 LoomQ →",
             "00</strong><span>≈ 50%",
             "11</strong><span>≈ 50%",
             "看看它是怎么做到的",
-            "现在，把你的问题说成人话就行。",
+            "接下来，直接说出你想做什么。",
             "帮我生成一个 GHZ 态并测量",
             "这段 Bell 电路写错了，帮我修好",
             "我有一个 15 比特任务，不想排队，应该选哪个后端？",
@@ -141,6 +141,92 @@ class JudgeAlignedBeginnerUxTests(unittest.TestCase):
         )
         for phrase in forbidden:
             self.assertNotIn(phrase, markup)
+
+
+class HumanAcceptanceUxTests(unittest.TestCase):
+    def test_v723_hero_prioritizes_result_and_names_each_next_action(self):
+        markup = (STATIC / "index.html").read_text(encoding="utf-8")
+        compact = "".join(markup.split())
+        for required in (
+            'id="hero-see-result"',
+            'class="hero-action hero-action--primary"',
+            "为什么反复运行同一份电路，结果会集中在 00 和 11？",
+            "先看结果 ↓",
+            "先看结果，再一步步看它是怎么发生的。",
+            "看懂以后，你也可以直接把自己的问题交给 LoomQ。",
+            "跟着做一次完整实验 →",
+            "已经懂基础？直接问 LoomQ →",
+        ):
+            self.assertIn("".join(required.split()), compact)
+        self.assertLess(markup.index('id="hero-see-result"'), markup.index('id="hero-beginner-path"'))
+        self.assertNotIn("先看 Bell 结果", markup)
+        self.assertNotIn("带我完成第一次实验", markup)
+        self.assertNotIn("我有自己的问题", markup)
+
+    def test_v723_beginner_copy_removes_implementation_caveats_and_redundant_help(self):
+        markup = (STATIC / "index.html").read_text(encoding="utf-8")
+        compact = "".join(markup.split())
+        for required in (
+            "这里先展示理想状态下的参考结果。真正运行到量子机器上时，数字通常会有一点偏差。",
+            "这里先用理想模拟把规律演示出来，方便你看清 00 和 11 是怎么出现的。",
+            "接下来，直接说出你想做什么。",
+            "你可以像平时提问一样描述目标，LoomQ 会帮你生成电路、检查并运行。",
+        ):
+            self.assertIn("".join(required.split()), compact)
+        for removed in (
+            "这是要解释的目标分布，不是假装刚刚提交了一次硬件任务。",
+            "理想 / 本地教学可视化：这里不会调用 API，也不会改变后面的真实实验。",
+            "现在，把你的问题说成人话就行。",
+            'id="onboarding-qubit-help"',
+        ):
+            self.assertNotIn(removed, markup)
+
+    def test_v723_story_stages_are_scroll_linked_without_wheel_interception(self):
+        markup = (STATIC / "index.html").read_text(encoding="utf-8")
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
+        script = (STATIC / "app.js").read_text(encoding="utf-8")
+        self.assertEqual(markup.count('class="tutorial-story-stage'), 2)
+        self.assertEqual(markup.count('class="tutorial-story-frame"'), 2)
+        self.assertIn("min-height: clamp(180svh, 210svh, 240svh)", css)
+        self.assertIn("position: sticky", css)
+        self.assertIn(".tutorial-story-stage.tutorial-sticky { position: static; top: auto; }", css)
+        self.assertIn("tutorialProgress", script)
+        self.assertIn("prefers-reduced-motion", script)
+        self.assertNotIn("addEventListener('wheel'", script)
+        self.assertNotIn('addEventListener("wheel"', script)
+
+    def test_v723_result_circuit_uses_single_svg_topology(self):
+        script = (STATIC / "app.js").read_text(encoding="utf-8")
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
+        for required in (
+            "createElementNS",
+            "quantum-circuit-svg",
+            "circuit-rail",
+            "circuit-connector-svg",
+            "data-role",
+            "control q0",
+            "target q1",
+        ):
+            self.assertIn(required, script)
+        self.assertNotIn(".circuit-cell::before", css)
+        self.assertNotIn("class\", \"circuit-connector\"", script)
+
+    def test_v723_outcome_delight_is_finite_and_reduced_motion_safe(self):
+        markup = (STATIC / "index.html").read_text(encoding="utf-8")
+        script = (STATIC / "app.js").read_text(encoding="utf-8")
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
+        for required in (
+            'class="outcome-first-stat outcome-first-stat--00"',
+            'class="outcome-first-stat outcome-first-stat--11"',
+            'class="outcome-decoration outcome-decoration--smile" aria-hidden="true"',
+            'class="outcome-decoration outcome-decoration--hop" aria-hidden="true"',
+            "initOutcomeDelight",
+            "outcome-smile-blink",
+            "outcome-hop",
+            "prefers-reduced-motion: reduce",
+        ):
+            self.assertIn(required, markup + script + css)
+        self.assertNotIn("animation-iteration-count: infinite", css)
 
 
 class BackendAvailabilityAndLauncherTests(unittest.TestCase):

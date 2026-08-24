@@ -258,19 +258,19 @@ h3, h4 { letter-spacing: -0.012em; }
 .check-dot { width: 7px; height: 7px; background: var(--cyan); border-radius: 50%; }
 .verification-list small { color: var(--text-tertiary); font-size: 10px; letter-spacing: .08em; }
 .circuit-view { min-height: 176px; overflow-x: auto; }
-.circuit-layout { display: grid; min-width: 420px; grid-template-columns: 38px minmax(0, 1fr); align-items: stretch; gap: 8px; }
-.circuit-labels, .circuit-grid { display: grid; }
-.circuit-labels { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px; }
-.circuit-labels span { display: flex; min-height: 58px; align-items: center; }
-.circuit-grid { position: relative; grid-template-columns: repeat(var(--columns), minmax(56px, 1fr)); grid-template-rows: repeat(var(--rows), 58px); }
-.circuit-cell { position: relative; display: grid; place-items: center; }
-.circuit-cell::before { position: absolute; z-index: 0; right: 0; left: 0; height: 2px; background: var(--text-primary); content: ""; }
-.gate-token, .measurement-token, .cnot-target, .cnot-control { position: relative; z-index: 2; }
-.gate-token, .measurement-token { display: grid; min-width: 35px; height: 35px; place-items: center; padding-inline: 5px; color: #FFFFFF; background: var(--blue); border-radius: 8px; font-family: var(--font-mono); font-size: 12px; }
-.measurement-token { color: var(--text-primary); background: #FFFFFF; border: 1px solid var(--border-default); }
-.cnot-control { width: 12px; height: 12px; background: var(--text-primary); border-radius: 50%; }
-.cnot-target { display: grid; width: 34px; height: 34px; place-items: center; color: var(--blue); background: #FFFFFF; border: 2px solid var(--blue); border-radius: 50%; font-family: var(--font-sans); font-size: 12px; }
-.circuit-connector { z-index: 1; align-self: center; justify-self: center; width: 2px; height: calc(100% - 58px); background: var(--text-primary); }
+.circuit-layout { display: block; min-width: 0; }
+.quantum-circuit-svg { display: block; width: 100%; min-width: 360px; height: auto; overflow: visible; }
+.circuit-rail { stroke: var(--text-primary); stroke-linecap: round; stroke-width: 2; }
+.circuit-connector-svg { stroke: var(--text-primary); stroke-width: 2; }
+.circuit-label-svg { fill: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px; }
+.circuit-control-svg { fill: var(--text-primary); }
+.circuit-target-ring { fill: #FFFFFF; stroke: var(--blue); stroke-width: 2; }
+.circuit-target-cross { stroke: var(--blue); stroke-linecap: round; stroke-width: 2; }
+.circuit-gate-box, .measurement-box-svg { fill: var(--blue); stroke: var(--blue); stroke-width: 1; }
+.measurement-box-svg { fill: #FFFFFF; stroke: var(--border-default); }
+.circuit-gate-label-svg { fill: #FFFFFF; font-family: var(--font-mono); font-size: 12px; font-weight: 650; }
+.measurement-label-svg { fill: var(--text-primary); font-family: var(--font-mono); font-size: 12px; font-weight: 650; }
+.circuit-gate-svg, .measurement-glyph-svg, .circuit-target-svg { outline: none; }
 .qasm-card summary { display: flex; min-height: 46px; align-items: center; justify-content: space-between; color: var(--text-primary); font-size: 17px; font-weight: 650; cursor: pointer; }
 .disclosure-chevron { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; transition: transform 200ms ease; }
 .qasm-card[open] .disclosure-chevron { transform: rotate(180deg); }
@@ -1017,9 +1017,6 @@ details > summary:hover::before { color: var(--blue); }
 .bell-shot-boundary > p { margin: 0 0 16px; color: var(--lq-ink-soft); font-size: 14px; line-height: 1.7; }
 .backend-availability-copy { margin: 8px 0 0; color: var(--lq-ink-muted); font-size: 12px; line-height: 1.6; }
 .backend-availability-copy.is-error { color: #9C3D3B; }
-.circuit-grid { min-width: 420px; }
-.circuit-cell::before { top: 50%; height: 2px; transform: translateY(-50%); }
-.circuit-connector { height: calc(100% - 58px); min-height: 0; }
 .measurement-glyph { position: relative; z-index: 2; display: grid; width: 35px; height: 35px; place-items: center; color: var(--lq-ink); background: #FFFFFF; border: 1px solid var(--lq-line-strong, #DEDEDE); border-radius: 8px; font-family: var(--font-mono); font-size: 12px; font-weight: 650; }
 .measurement-glyph::after { position: absolute; right: 5px; bottom: 5px; width: 7px; height: 7px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; content: ""; opacity: .6; }
 .cnot-control, .cnot-target, .gate-token, .measurement-glyph { transition: transform 180ms ease, opacity 180ms ease; }
@@ -1137,6 +1134,7 @@ details > summary:hover::before { color: var(--blue); }
 /* Keep the static Bell preview legible as a complete circuit: the rail must
    remain continuous behind each gate, control, target, and measurement. */
 .bell-lane { position: relative; }
+.bell-lane .lane-wire { display: none; }
 .bell-lane::before {
   content: "";
   position: absolute;
@@ -1158,4 +1156,58 @@ details > summary:hover::before { color: var(--blue); }
 }
 @media (max-width: 899px) {
   .bell-lane::before { left: 36px; right: 36px; }
+}
+
+/* V7.2.3 human-acceptance refinement: make the first five minutes concrete,
+   keep the scroll story in normal document flow, and keep the result circuit
+   on one coordinate system. */
+.hero-title--question { width: min(940px, 100%); margin-bottom: 25px; font-size: clamp(48px, 4.55vw, 64px); line-height: 1.16; letter-spacing: -.025em; text-wrap: balance; }
+.hero-question-headline { display: block; }
+.hero-support-line, .hero-product-line { display: block; }
+.hero-product-line { color: var(--lq-ink-muted) !important; font-size: 14px !important; }
+.hero-action--primary { color: #FFFFFF; background: var(--blue); border-color: var(--blue); font-size: 17px; box-shadow: 0 7px 18px rgba(13, 74, 139, .13); }
+.hero-action--primary:hover, .hero-action--primary:focus-visible { color: #FFFFFF; background: #0B5FAD; border-color: #0B5FAD; }
+.hero-entry-button--tertiary { color: var(--lq-ink-muted); background: transparent; border-color: transparent; }
+.hero-entry-button--tertiary:hover, .hero-entry-button--tertiary:focus-visible { color: var(--blue); background: var(--blue-soft); border-color: transparent; }
+.outcome-first-stat { position: relative; cursor: pointer; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.outcome-first-stat:hover, .outcome-first-stat:focus-visible, .outcome-first-stat.is-delighted { border-color: var(--blue); box-shadow: 0 9px 22px rgba(13, 74, 139, .10); transform: translateY(-2px); }
+.outcome-decoration { position: absolute; right: 17px; bottom: 16px; display: block; pointer-events: none; }
+.outcome-decoration--smile { width: 26px; height: 15px; border-bottom: 2px solid var(--blue); border-radius: 0 0 18px 18px; opacity: .72; }
+.outcome-decoration--smile::before { position: absolute; top: -6px; left: 3px; width: 4px; height: 4px; background: var(--blue); border-radius: 50%; box-shadow: 15px 0 0 var(--blue); content: ""; }
+.outcome-decoration--hop { width: 18px; height: 5px; background: var(--blue); border-radius: 99px; opacity: .76; }
+.outcome-first-stat:hover .outcome-decoration--smile, .outcome-first-stat:focus-visible .outcome-decoration--smile, .outcome-first-stat.is-delighted .outcome-decoration--smile { animation: outcome-smile-blink 420ms ease both; }
+.outcome-first-stat:hover .outcome-decoration--hop, .outcome-first-stat:focus-visible .outcome-decoration--hop, .outcome-first-stat.is-delighted .outcome-decoration--hop { animation: outcome-hop 420ms cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes outcome-smile-blink {
+  0%, 100% { transform: scaleY(1); opacity: .72; }
+  45% { transform: scaleY(.28); opacity: .38; }
+}
+@keyframes outcome-hop {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  42% { transform: translateY(-5px) rotate(-9deg); }
+  78% { transform: translateY(1px) rotate(4deg); }
+}
+.tutorial-shell { width: min(1180px, calc(100% - 64px)); margin-inline: auto; }
+.tutorial-story-frame { min-height: clamp(180svh, 210svh, 240svh); }
+.tutorial-story-stage { min-height: min(calc(100svh - 112px), 760px); }
+.tutorial-story-stage.tutorial-sticky { position: sticky; top: 68px; }
+.tutorial-story-stage .section-heading { margin-inline: auto; }
+.tutorial-story-stage .tutorial-card { min-height: 420px; }
+.cnot-rule, .circuit-inspect { position: relative; z-index: 1; }
+.circuit-inspect { background: #FFFFFF; }
+.agent-section .section-heading h2 { text-wrap: balance; }
+@media (prefers-reduced-motion: reduce) {
+  .outcome-first-stat, .outcome-decoration--smile, .outcome-decoration--hop { transition: none; animation: none !important; }
+}
+@media (max-width: 767px) {
+  .hero-title--question { max-width: 350px; margin-bottom: 21px; font-size: clamp(31px, 8.8vw, 45px); line-height: 1.18; letter-spacing: -.035em; }
+  .hero-product-line { font-size: 13px !important; }
+  .hero-action--primary { font-size: 16px; }
+  .outcome-decoration { right: 10px; bottom: 10px; transform: scale(.82); transform-origin: bottom right; }
+  .tutorial-shell { width: calc(100% - 40px); }
+  .tutorial-story-frame { min-height: auto; }
+  .scroll-tutorial { min-height: clamp(180svh, 210svh, 240svh); padding-top: 72px; }
+  .tutorial-story-stage { min-height: min(calc(100svh - 84px), 780px); }
+  .tutorial-story-stage.tutorial-sticky { position: static; top: auto; }
+  .tutorial-story-stage .tutorial-card { min-height: 0; }
+  html[lang^="zh"] .agent-section .section-heading h2 { max-width: 100%; font-size: clamp(18px, 5.4vw, 22px); letter-spacing: -.045em; line-height: 1.3; white-space: nowrap; }
 }

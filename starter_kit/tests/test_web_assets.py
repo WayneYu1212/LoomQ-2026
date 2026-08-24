@@ -92,7 +92,7 @@ class WebAssetContractTests(unittest.TestCase):
         self.assertGreaterEqual(audit.details_count, 3)
         self.assertEqual(audit.external_resources, [])
         for required in (
-            "为什么这份只有两个量子比特的电路",
+            "为什么反复运行同一份电路，结果会集中在 00 和 11？",
             "先只看一个量子比特",
             "再把两个量子比特连起来",
             "CNOT",
@@ -492,8 +492,8 @@ class WebAssetContractTests(unittest.TestCase):
             'id="agent-entry"',
             'id="circuit-inspect"',
             'class="agent-prompt-card"',
-            "不懂量子也可以。先跑一次，再看发生了什么。",
-            "现在，把你的问题说成人话就行。",
+            "先看结果，再一步步看它是怎么发生的。",
+            "接下来，直接说出你想做什么。",
             "帮我生成一个 GHZ 态并测量",
             "这段 Bell 电路写错了，帮我修好",
             "我有一个 15 比特任务，不想排队，应该选哪个后端？",

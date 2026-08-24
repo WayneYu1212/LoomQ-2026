@@ -29,6 +29,7 @@
   var bellOneBar = document.querySelector('#bell-one-bar');
   var bellZeroCount = document.querySelector('#bell-zero-count');
   var bellOneCount = document.querySelector('#bell-one-count');
+  var outcomeDelightStats = [].slice.call(document.querySelectorAll('[data-outcome-delight]'));
   var circuitInspectSteps = [].slice.call(document.querySelectorAll('.circuit-inspect-step'));
   var circuitInspectState = document.querySelector('#circuit-inspect-state');
   var circuitInspectCopy = document.querySelector('#circuit-inspect-copy');
@@ -491,6 +492,13 @@
     while (element.firstChild) element.removeChild(element.firstChild);
   }
 
+  function makeSvgEl(tag, className, text) {
+    var element = document.createElementNS('http:' + '//www.w3.org/2000/svg', tag);
+    if (className) element.setAttribute('class', className);
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
+
   function updateStrokeViewport() {
     strokeTextSvg.setAttribute('viewBox', window.innerWidth <= 767 ? '320 0 360 128' : '0 0 1000 128');
   }
@@ -622,6 +630,19 @@
     if (hOneBar) hOneBar.style.width = oneShare.toFixed(2) + '%';
     if (hZeroCount) hZeroCount.textContent = String(zeroCount);
     if (hOneCount) hOneCount.textContent = String(oneCount);
+  }
+
+  function initOutcomeDelight() {
+    outcomeDelightStats.forEach(function (stat) {
+      var timer = 0;
+      stat.addEventListener('click', function () {
+        stat.classList.remove('is-delighted');
+        void stat.offsetWidth;
+        stat.classList.add('is-delighted');
+        window.clearTimeout(timer);
+        timer = window.setTimeout(function () { stat.classList.remove('is-delighted'); }, 520);
+      });
+    });
   }
 
   function initHInteraction() {
@@ -767,7 +788,7 @@
     [].slice.call(document.querySelectorAll('[data-stroke-lang]')).forEach(function (group) {
       group.toggleAttribute('hidden', group.dataset.strokeLang !== currentLanguage);
     });
-    document.querySelector('[data-stroke-text]').setAttribute('aria-label', pick('先看见一个结果', 'See a result first'));
+    document.querySelector('[data-stroke-text]').setAttribute('aria-label', pick('为什么反复运行同一份电路，结果会集中在 00 和 11？', 'Why do repeated runs of the same circuit concentrate on 00 and 11?'));
     languageToggle.setAttribute('aria-pressed', currentLanguage === 'en' ? 'true' : 'false');
     languageToggle.setAttribute('aria-label', pick('切换到英文', 'Switch to Chinese'));
     document.querySelector('[data-language-label]').textContent = '中 / EN';
@@ -903,7 +924,13 @@
     var rect = section.getBoundingClientRect();
     var stickyTop = window.innerWidth <= 767 ? 86 : 96;
     var travel = Math.max(section.offsetHeight - window.innerHeight + stickyTop, 1);
-    return clamp((stickyTop - rect.top) / travel, 0, 1);
+    var raw = clamp((stickyTop - rect.top) / travel, 0, 1);
+    if (raw < 0.12) return raw * 0.5;
+    if (raw < 0.28) return 0.06 + ((raw - 0.12) / 0.16) * 0.26;
+    if (raw < 0.38) return 0.32;
+    if (raw < 0.68) return 0.32 + ((raw - 0.38) / 0.30) * 0.40;
+    if (raw < 0.78) return 0.72;
+    return 0.72 + ((raw - 0.78) / 0.22) * 0.28;
   }
 
   function updateScrollTutorials() {
@@ -926,7 +953,7 @@
       qubitStoryLine.textContent = nextQubitStoryState === 'before'
         ? pick('现在，测量会得到 0。', 'A measurement now returns 0.')
         : (nextQubitStoryState === 'gate'
-          ? pick('让 H 门作用在它上面。', 'Let H act on it.')
+          ? pick('接下来加入 H：一个作用在单个量子比特上的操作。', 'Next, add H: an operation on one qubit.')
           : pick('重复很多次后，0 和 1 会各出现大约一半。', 'After many repetitions, 0 and 1 each appear about half the time.'));
     }
 
@@ -1263,69 +1290,144 @@
     var columns = groupCircuitColumns(operations);
     var qubitCount = circuit.qubit_count || 0;
     var layout = makeEl('div', 'circuit-layout');
-    var labels = makeEl('div', 'circuit-labels');
-    var grid = makeEl('div', 'circuit-grid');
-    grid.style.setProperty('--columns', Math.max(columns.length, 1));
-    grid.style.setProperty('--rows', Math.max(qubitCount, 1));
-    for (var q = 0; q < qubitCount; q += 1) labels.appendChild(makeEl('span', '', 'q' + q));
+    var width = Math.max(420, (Math.max(columns.length, 1) * 118) + 92);
+    var height = Math.max(150, (Math.max(qubitCount, 1) * 58) + 48);
+    var svg = makeSvgEl('svg', 'quantum-circuit-svg');
+    var railLeft = 42;
+    var railRight = width - 28;
+    var yStart = 38;
+    var rowGap = qubitCount > 1 ? Math.min(66, (height - 58) / (qubitCount - 1)) : 0;
+    var columnStep = columns.length > 1 ? (railRight - 72) / (columns.length - 1) : 0;
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', currentLanguage === 'zh' ? '量子电路图' : 'Quantum circuit diagram');
+    var title = makeSvgEl('title', '', currentLanguage === 'zh' ? '量子电路：H、CNOT，然后测量' : 'Quantum circuit: H, CNOT, then measurement');
+    svg.appendChild(title);
+    for (var q = 0; q < qubitCount; q += 1) {
+      var y = yStart + (rowGap * q);
+      var rail = makeSvgEl('line', 'circuit-rail');
+      rail.setAttribute('x1', railLeft);
+      rail.setAttribute('x2', railRight);
+      rail.setAttribute('y1', y);
+      rail.setAttribute('y2', y);
+      rail.setAttribute('data-role', 'rail');
+      rail.setAttribute('data-qubit', 'q' + q);
+      svg.appendChild(rail);
+      var label = makeSvgEl('text', 'circuit-label-svg', 'q' + q);
+      label.setAttribute('x', 10);
+      label.setAttribute('y', y);
+      label.setAttribute('dominant-baseline', 'central');
+      label.setAttribute('aria-hidden', 'true');
+      svg.appendChild(label);
+    }
     columns.forEach(function (column, columnIndex) {
       var operation = column.filter(function (item) { return item.type === 'gate' && item.qubits && item.qubits.length > 1; })[0] || null;
       var measurementByQubit = {};
       column.forEach(function (item) {
         if (item.type === 'measurement') measurementByQubit[item.qubit] = item;
       });
+      var x = columns.length > 1 ? 72 + (columnStep * columnIndex) : ((railLeft + railRight) / 2);
       if (operation) {
         var controlQubit = operation.qubits[0];
         var targetQubit = operation.qubits[1];
-        var connector = makeEl('span', 'circuit-connector');
-        var connectorTop = Math.min(controlQubit, targetQubit);
-        var connectorHeight = Math.abs(targetQubit - controlQubit) + 1;
-        connector.style.gridColumn = String(columnIndex + 1);
-        connector.style.gridRow = String(connectorTop + 1) + ' / span ' + connectorHeight;
+        var connector = makeSvgEl('line', 'circuit-connector-svg');
+        connector.setAttribute('x1', x);
+        connector.setAttribute('x2', x);
+        connector.setAttribute('y1', yStart + (rowGap * controlQubit));
+        connector.setAttribute('y2', yStart + (rowGap * targetQubit));
+        connector.setAttribute('data-role', 'connector');
         connector.setAttribute('aria-hidden', 'true');
-        grid.appendChild(connector);
+        svg.appendChild(connector);
       }
       for (var row = 0; row < qubitCount; row += 1) {
-        var cell = makeEl('div', 'circuit-cell');
-        cell.style.gridColumn = String(columnIndex + 1);
-        cell.style.gridRow = String(row + 1);
-        cell.dataset.qubit = 'q' + row;
+        var rowY = yStart + (rowGap * row);
         if (measurementByQubit[row]) {
-          var measurementGlyph = makeEl('span', 'measurement-glyph', 'M');
+          var measurementGlyph = makeSvgEl('g', 'measurement-glyph-svg');
+          measurementGlyph.setAttribute('data-role', 'measurement');
           measurementGlyph.setAttribute('aria-label', pick('测量 q' + row, 'Measure q' + row));
-          cell.appendChild(measurementGlyph);
+          var measurementBox = makeSvgEl('rect', 'measurement-box-svg');
+          measurementBox.setAttribute('x', x - 18);
+          measurementBox.setAttribute('y', rowY - 18);
+          measurementBox.setAttribute('width', 36);
+          measurementBox.setAttribute('height', 36);
+          measurementGlyph.appendChild(measurementBox);
+          var measurementLabel = makeSvgEl('text', 'measurement-label-svg', 'M');
+          measurementLabel.setAttribute('x', x);
+          measurementLabel.setAttribute('y', rowY + 1);
+          measurementLabel.setAttribute('text-anchor', 'middle');
+          measurementLabel.setAttribute('dominant-baseline', 'central');
+          measurementGlyph.appendChild(measurementLabel);
+          svg.appendChild(measurementGlyph);
         } else if (operation && operation.qubits.indexOf(row) !== -1) {
           var operationName = String(operation.name || '').toLowerCase();
           var controlQubit = operation.qubits[0];
           var targetQubit = operation.qubits[1];
           if (row === controlQubit) {
-            var controlGlyph = makeEl('span', 'cnot-control');
-            controlGlyph.setAttribute('aria-label', pick('控制位 q0', 'control q0'));
-            controlGlyph.title = pick('控制位 q0', 'control q0');
-            cell.appendChild(controlGlyph);
+            var controlGlyph = makeSvgEl('circle', 'circuit-control-svg');
+            controlGlyph.setAttribute('cx', x);
+            controlGlyph.setAttribute('cy', rowY);
+            controlGlyph.setAttribute('r', 7);
+            controlGlyph.setAttribute('data-role', 'control');
+            controlGlyph.setAttribute('aria-label', controlQubit === 0 ? pick('控制位 q0', 'control q0') : pick('控制位 q' + controlQubit, 'control q' + controlQubit));
+            svg.appendChild(controlGlyph);
           } else if (row === targetQubit && (operationName === 'cx' || operationName === 'cnot')) {
-            var targetGlyph = makeEl('span', 'cnot-target', 'X');
-            targetGlyph.setAttribute('aria-label', pick('目标位 q1', 'target q1'));
-            targetGlyph.title = pick('目标位 q1', 'target q1');
-            cell.appendChild(targetGlyph);
+            var targetGlyph = makeSvgEl('g', 'circuit-target-svg');
+            targetGlyph.setAttribute('data-role', 'target');
+            targetGlyph.setAttribute('aria-label', targetQubit === 1 ? pick('目标位 q1', 'target q1') : pick('目标位 q' + targetQubit, 'target q' + targetQubit));
+            var targetCircle = makeSvgEl('circle', 'circuit-target-ring');
+            targetCircle.setAttribute('cx', x);
+            targetCircle.setAttribute('cy', rowY);
+            targetCircle.setAttribute('r', 17);
+            targetGlyph.appendChild(targetCircle);
+            var targetCrossA = makeSvgEl('line', 'circuit-target-cross');
+            targetCrossA.setAttribute('x1', x - 11);
+            targetCrossA.setAttribute('y1', rowY);
+            targetCrossA.setAttribute('x2', x + 11);
+            targetCrossA.setAttribute('y2', rowY);
+            targetGlyph.appendChild(targetCrossA);
+            var targetCrossB = makeSvgEl('line', 'circuit-target-cross');
+            targetCrossB.setAttribute('x1', x);
+            targetCrossB.setAttribute('y1', rowY - 11);
+            targetCrossB.setAttribute('x2', x);
+            targetCrossB.setAttribute('y2', rowY + 11);
+            targetGlyph.appendChild(targetCrossB);
+            svg.appendChild(targetGlyph);
           } else {
-            var label = String(operation.name || 'gate').toUpperCase();
-            if (operation.params && operation.params.length) label += '(' + Number(operation.params[0]).toFixed(2) + ')';
-            cell.appendChild(makeEl('span', 'gate-token', label));
+            var multiLabel = String(operation.name || 'gate').toUpperCase();
+            var multiText = makeSvgEl('text', 'circuit-gate-label-svg', multiLabel);
+            multiText.setAttribute('x', x);
+            multiText.setAttribute('y', rowY + 1);
+            multiText.setAttribute('text-anchor', 'middle');
+            multiText.setAttribute('dominant-baseline', 'central');
+            svg.appendChild(multiText);
           }
         } else {
           var singleOperation = column.filter(function (item) { return item.type === 'gate' && item.qubits && item.qubits.indexOf(row) !== -1; })[0];
           if (singleOperation) {
             var singleLabel = String(singleOperation.name || 'gate').toUpperCase();
             if (singleOperation.params && singleOperation.params.length) singleLabel += '(' + Number(singleOperation.params[0]).toFixed(2) + ')';
-            cell.appendChild(makeEl('span', 'gate-token', singleLabel));
+            var gateGroup = makeSvgEl('g', 'circuit-gate-svg');
+            gateGroup.setAttribute('data-role', 'gate');
+            gateGroup.setAttribute('aria-label', pick(singleLabel + ' q' + row, singleLabel + ' q' + row));
+            var gateBox = makeSvgEl('rect', 'circuit-gate-box');
+            gateBox.setAttribute('x', x - 18);
+            gateBox.setAttribute('y', rowY - 18);
+            gateBox.setAttribute('width', 36);
+            gateBox.setAttribute('height', 36);
+            gateGroup.appendChild(gateBox);
+            var gateText = makeSvgEl('text', 'circuit-gate-label-svg', singleLabel);
+            gateText.setAttribute('x', x);
+            gateText.setAttribute('y', rowY + 1);
+            gateText.setAttribute('text-anchor', 'middle');
+            gateText.setAttribute('dominant-baseline', 'central');
+            gateGroup.appendChild(gateText);
+            svg.appendChild(gateGroup);
           }
         }
-        grid.appendChild(cell);
       }
     });
-    layout.appendChild(labels);
-    layout.appendChild(grid);
+    layout.appendChild(svg);
     circuitView.appendChild(layout);
     var metrics = circuit.metrics || {};
     circuitNote.textContent = currentLanguage === 'zh'
@@ -1561,6 +1663,7 @@
   initV72PublicCopy();
   initHInteraction();
   initCnotInteraction();
+  initOutcomeDelight();
   initCircuitInspect();
   initBellShotAccumulator();
   initAgentPromptCards();
