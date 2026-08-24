@@ -2,6 +2,9 @@
 
 > LoomQ 把自然语言量子意图变成经过程序验证、可运行在统一后端层上的电路，并同时说明结果能支持什么、不能支持什么。
 
+**Final product demo — 80 s**  
+`evidence/files/loomq-final-demo.mp4`
+
 评委只有 60 秒时，按下表从上到下核验；本文件是唯一的快速入口，其他材料只承担对应证据的细节。
 
 | 评分 / 风险区 | 60 秒内看什么 | Canonical evidence |

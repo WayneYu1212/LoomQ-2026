@@ -105,6 +105,7 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 2. `这段 Bell 电路写错了，帮我修好`
 3. `我有一个 15 比特任务，不想排队，应该选哪个后端？`
 截图或演示视频：`evidence/files/v7.2-zero-knowledge-intro-1440.png`、`evidence/files/v7.2-bell-result-openqasm-1440.png`、`evidence/files/v7.2-api-optional-390.png`、`evidence/files/v7.2-mobile-full-390.png`
+最终产品 Demo（80 s）：`evidence/files/loomq-final-demo.mp4`
 ```
 
 工作人员会在组委会统一模型环境中运行最终代码，测试新手是否看得懂、出错后能否得到有效帮助、结果是否清楚，以及多轮回答是否一致。选手自己的对话截图只用于说明产品流程，不直接证明得分。
