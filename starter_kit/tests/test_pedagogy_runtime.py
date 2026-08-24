@@ -144,7 +144,7 @@ class JudgeAlignedBeginnerUxTests(unittest.TestCase):
 
 
 class HumanAcceptanceUxTests(unittest.TestCase):
-    def test_v724_hero_restores_result_first_entry_and_names_each_next_action(self):
+    def test_v725_hero_restores_golden_centered_entry_and_cta_hierarchy(self):
         markup = (STATIC / "index.html").read_text(encoding="utf-8")
         script = (STATIC / "app.js").read_text(encoding="utf-8")
         css = (STATIC / "styles.css").read_text(encoding="utf-8")
@@ -152,16 +152,27 @@ class HumanAcceptanceUxTests(unittest.TestCase):
         for required in (
             'id="hero-see-result"',
             'class="hero-action hero-action--primary"',
-            "先看结果，再一步步看它是怎么发生的。",
-            "看懂以后，你也可以直接把自己的问题交给 LoomQ。",
             "跟着做一次完整实验 →",
             "已经懂基础？直接问 LoomQ →",
         ):
             self.assertIn("".join(required.split()), compact)
-        self.assertIn("initV724Hero", script)
-        self.assertIn("先看见一个结果，再走进量子世界", script)
-        self.assertIn("先看 Bell 结果", script)
-        self.assertIn("hero-result-preview", script + css)
+        for required in (
+            "initV725GoldenRestore",
+            "hero-mystery",
+            "hero-preview",
+            "先看见一个结果",
+            "再走进量子世界",
+            "为什么这份只有两个量子比特的电路，反复运行时，答案会集中在 00 和 11？",
+            "不懂量子也可以。先跑一次，再看发生了什么。",
+            "LoomQ 会把你的自然语言变成量子电路、检查它、选择后端并把结果翻译成人话。",
+            "先看结果 ↓",
+        ):
+            self.assertIn(required, script)
+        self.assertIn("hero-golden-line", css)
+        self.assertIn("width: fit-content", css)
+        self.assertNotIn("initV724Hero();", script)
+        self.assertNotIn("先看 Bell 结果", script)
+        self.assertNotIn("hero-result-preview", script + css)
         self.assertLess(markup.index('id="hero-see-result"'), markup.index('id="hero-beginner-path"'))
         self.assertNotIn("带我完成第一次实验", markup)
         self.assertNotIn("我有自己的问题", markup)
@@ -240,8 +251,37 @@ class HumanAcceptanceUxTests(unittest.TestCase):
         self.assertIn("stageDocumentTop", script)
         self.assertIn("frameDocumentBottom", script)
         self.assertIn("tutorialProgress(section)", script)
+        self.assertIn("return clamp((window.scrollY - stickyStart) / stickyTravel, 0, 1);", script)
+        self.assertIn("gateProgress", script)
+        self.assertIn("connectorProgress", script)
+        self.assertIn("resultProgress", script)
+        self.assertNotIn("if (raw < 0.12)", script)
+        self.assertNotIn("return 0.32;", script)
+        self.assertNotIn("return 0.72;", script)
         self.assertIn(".tutorial-story-frame", css)
-        self.assertNotIn("section.offsetHeight - window.innerHeight + stickyTop", script)
+        self.assertIn("sectionRect", script)
+        self.assertIn("naturalTravel", script)
+
+    def test_v725_single_qubit_copy_has_a_wide_sentence_measure(self):
+        script = (STATIC / "app.js").read_text(encoding="utf-8")
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("先从 |0⟩ 出发。\\n现在立刻测量，结果会是 0。", script)
+        self.assertIn("接着加入 H。\\n先别急着记定义，先看它带来的变化。\\n重复测量以后，0 和 1 都会出现。", script)
+        self.assertIn(".tutorial-story-stage .tutorial-copy { width: min(100%, 620px);", css)
+        self.assertIn(".tutorial-body.v71-copy", css)
+
+    def test_v725_outcome_cards_keep_the_feedback_local_and_light(self):
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
+        self.assertIn(".outcome-first-stat--00 .outcome-decoration--smile", css)
+        self.assertIn("opacity: 0;", css)
+        self.assertIn("width: 20px;", css)
+        self.assertIn(".outcome-first-stat--11:hover strong", css)
+        self.assertIn("animation: outcome-hop 220ms", css)
+        self.assertIn(".outcome-first-stat:focus-visible", css)
+        self.assertNotIn(
+            ".outcome-first-stat:hover, .outcome-first-stat:focus-visible, .outcome-first-stat.is-delighted { border-color: var(--blue);",
+            css,
+        )
 
     def test_v724_beginner_copy_and_circuit_feedback_are_plain_and_targeted(self):
         script = (STATIC / "app.js").read_text(encoding="utf-8")

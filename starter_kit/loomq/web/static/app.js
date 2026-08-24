@@ -84,6 +84,7 @@
   var activePinnedHelp = null;
   var activeHelpTrigger = null;
   var helpCloseTimer = 0;
+  var tutorialGeometry = new WeakMap();
   var predictionChoices = [].slice.call(document.querySelectorAll('.prediction-choice'));
   var predictionFeedback = document.querySelector('#prediction-feedback');
   var pauliTabs = [].slice.call(document.querySelectorAll('.pauli-tab'));
@@ -691,51 +692,66 @@
     });
   }
 
-  function initV724Hero() {
+  function initV725GoldenRestore() {
     var title = document.querySelector('#page-title');
-    var headline = title ? title.querySelector('.hero-question-headline') : null;
-    var strokeText = title ? title.querySelector('[data-stroke-text]') : null;
-    if (title && headline) {
-      title.classList.remove('hero-title--question');
-      title.classList.add('hero-title--restored');
-      setBilingualText(headline, '先看见一个结果，再走进量子世界', 'See a result first, then enter the quantum world');
+    var titleMotion = title ? title.querySelector('.hero-title-motion') : null;
+    var strokeText = titleMotion ? titleMotion.querySelector('[data-stroke-text]') : null;
+    var heroContent = document.querySelector('.hero-content');
+    if (!title || !heroContent) return;
+
+    title.classList.remove('hero-title--question', 'hero-title--restored');
+    title.classList.add('hero-title--golden');
+    clear(title);
+    if (titleMotion) {
+      titleMotion.hidden = false;
+      titleMotion.removeAttribute('aria-hidden');
+      titleMotion.classList.add('hero-golden-line');
+      titleMotion.querySelectorAll('[data-stroke-lang]').forEach(function (group) {
+        var value = group.dataset.strokeLang === 'en' ? 'See a result first' : '先看见一个结果';
+        group.querySelectorAll('tspan').forEach(function (tspan) { tspan.textContent = value; });
+      });
+      if (strokeText) {
+        strokeText.dataset.ariaLabelZh = '先看见一个结果';
+        strokeText.dataset.ariaLabelEn = 'See a result first';
+        strokeText.setAttribute('aria-label', pick(strokeText.dataset.ariaLabelZh, strokeText.dataset.ariaLabelEn));
+      }
+      title.appendChild(titleMotion);
+    } else {
+      title.appendChild(makeBilingualNode('span', 'hero-golden-line hero-title-solid', '先看见一个结果', 'See a result first'));
     }
-    if (strokeText) {
-      strokeText.dataset.ariaLabelZh = '先看见一个结果，再走进量子世界';
-      strokeText.dataset.ariaLabelEn = 'See a result first, then enter the quantum world';
-      strokeText.setAttribute('aria-label', pick(strokeText.dataset.ariaLabelZh, strokeText.dataset.ariaLabelEn));
-    }
+    title.appendChild(makeBilingualNode('span', 'hero-golden-line hero-title-solid', '再走进量子世界', 'Then step into the quantum world'));
 
     var primary = document.querySelector('#hero-see-result');
     if (primary) {
-      var primaryLabel = primary.querySelector('[data-zh][data-en]');
-      setBilingualText(primaryLabel, '先看 Bell 结果', 'See the Bell result');
+      setBilingualText(primary.querySelector('[data-zh][data-en]'), '先看结果 ↓', 'See the result ↓');
       primary.setAttribute('href', '#outcome-first');
     }
 
-    var heroContent = document.querySelector('.hero-content');
-    if (!heroContent || heroContent.querySelector('.hero-result-preview')) return;
-    var preview = makeEl('a', 'hero-result-preview');
-    preview.setAttribute('href', '#outcome-first');
-    preview.dataset.ariaLabelZh = '先看 Bell 结果：00 和 11 各约一半';
-    preview.dataset.ariaLabelEn = 'See the Bell result: about half 00 and half 11';
-    preview.setAttribute('aria-label', preview.dataset.ariaLabelZh);
-    preview.appendChild(makeBilingualNode('span', 'hero-result-preview__eyebrow', '先看结果', 'See the outcome'));
-
-    var rows = makeEl('span', 'hero-result-preview__rows');
-    [['00', '约一半', 'About half'], ['11', '约一半', 'About half']].forEach(function (item) {
-      var row = makeEl('span', 'hero-result-preview__row');
-      row.appendChild(makeEl('strong', 'hero-result-preview__token', item[0]));
-      var track = makeEl('span', 'hero-result-preview__track');
-      var fill = makeEl('i', 'hero-result-preview__fill');
-      track.appendChild(fill);
-      row.appendChild(track);
-      row.appendChild(makeBilingualNode('span', 'hero-result-preview__share', item[1], item[2]));
-      rows.appendChild(row);
+    var intro = heroContent.querySelector('.hero-intro');
+    var mystery = heroContent.querySelector('.hero-mystery');
+    if (!mystery) {
+      mystery = makeEl('div', 'hero-mystery');
+      heroContent.insertBefore(mystery, intro || null);
+    }
+    clear(mystery);
+    mystery.appendChild(makeBilingualNode('p', 'hero-question', '为什么这份只有两个量子比特的电路，反复运行时，答案会集中在 00 和 11？', 'Why does a two-qubit circuit keep returning mostly 00 and 11 when we run it again and again?'));
+    var preview = makeEl('div', 'hero-preview');
+    preview.dataset.ariaLabelZh = '00 和 11 结果预览';
+    preview.dataset.ariaLabelEn = 'Preview of 00 and 11';
+    preview.setAttribute('aria-label', pick(preview.dataset.ariaLabelZh, preview.dataset.ariaLabelEn));
+    [['00', '72%'], ['11', '68%']].forEach(function (item) {
+      var row = makeEl('div');
+      row.appendChild(makeBilingualNode('span', '', item[0], item[0]));
+      var bar = makeEl('i');
+      bar.style.setProperty('--preview-size', item[1]);
+      row.appendChild(bar);
+      preview.appendChild(row);
     });
-    preview.appendChild(rows);
-    preview.appendChild(makeBilingualNode('span', 'hero-result-preview__note', '理想 Bell Φ+：00 和 11 各约一半。', 'Ideal Bell Φ+: about half 00 and 11.'));
-    heroContent.insertBefore(preview, heroContent.querySelector('.hero-intro'));
+    mystery.appendChild(preview);
+    var supportLine = heroContent.querySelector('.hero-support-line');
+    if (supportLine) setBilingualText(supportLine, '不懂量子也可以。先跑一次，再看发生了什么。', 'You do not need quantum background. Run it once, then see what happens.');
+    var productLine = heroContent.querySelector('.hero-product-line');
+    if (productLine) setBilingualText(productLine, 'LoomQ 会把你的自然语言变成量子电路、检查它、选择后端并把结果翻译成人话。', 'LoomQ turns plain language into a quantum circuit, checks it, chooses a backend, and explains the result.');
   }
 
   function initHInteraction() {
@@ -882,7 +898,7 @@
       group.toggleAttribute('hidden', group.dataset.strokeLang !== currentLanguage);
     });
     var localizedStrokeText = document.querySelector('[data-stroke-text]');
-    if (localizedStrokeText) localizedStrokeText.setAttribute('aria-label', pick('先看见一个结果，再走进量子世界', 'See a result first, then enter the quantum world'));
+    if (localizedStrokeText) localizedStrokeText.setAttribute('aria-label', pick('先看见一个结果', 'See a result first'));
     languageToggle.setAttribute('aria-pressed', currentLanguage === 'en' ? 'true' : 'false');
     languageToggle.setAttribute('aria-label', pick('切换到英文', 'Switch to Chinese'));
     document.querySelector('[data-language-label]').textContent = '中 / EN';
@@ -1019,27 +1035,38 @@
     var frame = section.querySelector('.tutorial-story-frame');
     if (!stage || !frame) return 0;
     var stageRect = stage.getBoundingClientRect();
+    var sectionRect = section.getBoundingClientRect();
     var stickyTop = parseFloat(window.getComputedStyle(stage).top);
     if (!Number.isFinite(stickyTop)) stickyTop = window.innerWidth <= 767 ? 62 : 68;
     var isSticky = window.getComputedStyle(stage).position === 'sticky';
-    var raw;
     if (!isSticky) {
-      var naturalTravel = Math.max(stage.offsetHeight - window.innerHeight + stickyTop, 1);
-      raw = clamp((stickyTop - stageRect.top) / naturalTravel, 0, 1);
-    } else {
-      var stageDocumentTop = stageRect.top + window.scrollY;
-      var frameDocumentBottom = frame.getBoundingClientRect().bottom + window.scrollY;
-      var stickyStart = stageDocumentTop - stickyTop;
-      var stickyEnd = frameDocumentBottom - stage.offsetHeight - stickyTop;
-      var stickyTravel = Math.max(stickyEnd - stickyStart, 1);
-      raw = clamp((window.scrollY - stickyStart) / stickyTravel, 0, 1);
+      var naturalTravel = Math.max(section.offsetHeight - window.innerHeight + stickyTop, 1);
+      return clamp((stickyTop - sectionRect.top) / naturalTravel, 0, 1);
     }
-    if (raw < 0.12) return raw * 0.5;
-    if (raw < 0.28) return 0.06 + ((raw - 0.12) / 0.16) * 0.26;
-    if (raw < 0.38) return 0.32;
-    if (raw < 0.68) return 0.32 + ((raw - 0.38) / 0.30) * 0.40;
-    if (raw < 0.78) return 0.72;
-    return 0.72 + ((raw - 0.78) / 0.22) * 0.28;
+
+    var geometry = tutorialGeometry.get(section);
+    var frameRect = frame.getBoundingClientRect();
+    if (!geometry) {
+      var naturalStageRect = stageRect;
+      if (stageRect.top <= stickyTop + 1) {
+        var previousPosition = stage.style.position;
+        var previousTop = stage.style.top;
+        stage.style.position = 'static';
+        stage.style.top = 'auto';
+        naturalStageRect = stage.getBoundingClientRect();
+        stage.style.position = previousPosition;
+        stage.style.top = previousTop;
+      }
+      geometry = { stageOffsetInFrame: naturalStageRect.top - frameRect.top };
+      tutorialGeometry.set(section, geometry);
+    }
+    var frameDocumentTop = frameRect.top + window.scrollY;
+    var stageDocumentTop = frameDocumentTop + geometry.stageOffsetInFrame;
+    var frameDocumentBottom = frameDocumentTop + frame.offsetHeight;
+    var stickyStart = stageDocumentTop - stickyTop;
+    var stickyEnd = frameDocumentBottom - stage.offsetHeight - stickyTop;
+    var stickyTravel = Math.max(stickyEnd - stickyStart, 1);
+    return clamp((window.scrollY - stickyStart) / stickyTravel, 0, 1);
   }
 
   function updateScrollTutorials() {
@@ -1750,6 +1777,7 @@
 
   window.addEventListener('scroll', scheduleScrollUpdate, { passive: true });
   window.addEventListener('resize', function () {
+    tutorialGeometry = new WeakMap();
     updateStrokeViewport();
     scheduleScrollUpdate();
   });
@@ -1770,7 +1798,7 @@
   initPauliTabs();
   initV71PublicExperience();
   initV72PublicCopy();
-  initV724Hero();
+  initV725GoldenRestore();
   initV724Copy();
   initHInteraction();
   initCnotInteraction();
