@@ -103,4 +103,20 @@
 当前提交的全部 judge-facing 声明均未超出数据支持范围。
 
 - 2026-08-22 前：所有纠缠相关表述为否定式边界声明（"未声明证明纠缠"）。
-- 2026-08-22：按 §4 预注册标准执行了 X/Y-basis 实验。X-basis（Cxx=0.99956）触发 Y-basis；Y-basis（Cyy=−0.99865）完成三关联测量。点估计为 **\|Cxx\|+\|Czz\| = 1.99911**、**F_Φ+ = 0.99944**。复审发现 Runtime API 返回的是 provider probabilities 而非 raw counts；在缺少可验证的不确定性模型时，不能把请求的 1000 shots 直接套入 binomial 下界。因此只报告这三个 job 的点估计，不作统计性 witness 或 fidelity-threshold 声明。
+ 2026-08-22：按 §4 预注册标准执行了 X/Y-basis 实验。X-basis（Cxx=0.99956）触发 Y-basis；Y-basis（Cyy=−0.99865）完成三关联测量。点估计为 **\|Cxx\|+\|Czz\| = 1.99911**、**F_Φ+ = 0.99944**。复审发现 Runtime API 返回的是 provider probabilities 而非 raw counts；在缺少可验证的不确定性模型时，不能把请求的 1000 shots 直接套入 binomial 下界。因此只报告这三个 job 的点估计，不作统计性 witness 或 fidelity-threshold 声明。
+
+## 6. Final candidate UX diff audit — 2026-08-25
+
+This is a reference-based technical review of the final UX/documentation diff. The attached external science audit was used as a cross-check only; it is not a physical-expert review or endorsement.
+
+The final candidate changed the judge-facing route and release documentation, but did not change the quantum compiler, runners, raw hardware exports, manifests, metadata, checksums, or canonical science numbers. The relevant UX changes are `starter_kit/JUDGE_GUIDE.md`, `starter_kit/README.md`, `starter_kit/USER_GUIDE.md`, `starter_kit/QUANTUM_101.md`, `starter_kit/loomq/web/static/styles.css` comments, and the evidence/checklist files.
+
+Keyword sweep covered `Bell`, `entanglement`, `GHZ`, `tomography`, `fidelity`, `PPT`, `prove`, `量子优势`, `证明`, and `纠缠` across the current judge-facing docs and Web assets:
+
+- Bell / entanglement: the map now directs reviewers from `00/11` correlation to X/Y/Z and tomography; the guide explicitly says Z-basis correlation is not proof of entanglement.
+- GHZ: the existing noise-affected computational-basis boundary remains; no new multipartite-entanglement claim was added.
+- Tomography / fidelity / PPT: the existing provider-reconstructed point-estimate wording remains bounded; no confidence interval, device-independent certification, loophole-free certification, or quantum-advantage claim was added.
+- `prove` / `量子优势`: the final guide preserves the distinction between software verifier correctness, physical evidence, and quantum advantage.
+- Backend P0 semantics: `zero_queue` polarity is a routing contract and regression fact, not a physical claim; no scientific evidence is inferred from it.
+
+Conclusion for this diff: no new overclaim was found. The remaining human gate is to review the rendered copy, especially the nearby distinction between the ideal Bell state definition and what one Z-basis run can establish.

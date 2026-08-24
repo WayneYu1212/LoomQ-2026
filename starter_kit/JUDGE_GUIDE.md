@@ -1,74 +1,50 @@
-# LoomQ Judge Guide — V7.2 60-second map
+# LoomQ Judge Guide — 60-second evidence map
 
-LoomQ lets people without QASM or quantum-SDK experience describe intent, receive a program-verified circuit, run it through one unified backend layer, and understand both the result and its scientific boundary. The intended users are cross-disciplinary creators, humanities/social-science students, designers, product managers, and ordinary AI users—not only quantum specialists.
+> LoomQ 把自然语言量子意图变成经过程序验证、可运行在统一后端层上的电路，并同时说明结果能支持什么、不能支持什么。
 
-**One language → many quantum machines:** OpenQASM is parsed once into a typed IR, verified once, and emitted to SpinQ, OriginQ and Braket. The evidence below verifies that bridge.
+评委只有 60 秒时，按下表从上到下核验；本文件是唯一的快速入口，其他材料只承担对应证据的细节。
 
-## 60-second experience
+| 评分 / 风险区 | 60 秒内看什么 | Canonical evidence |
+|---|---|---|
+| L1 unified execution | 同一 OpenQASM 经 typed IR 输出到 SpinQ、OriginQ、Braket；官方 L1 evaluator | `evidence/files/l1-public-report.json`、`loomq/compiler/`、`emitters/`、`runners/` |
+| L2 objective robustness | 历史 Clean V2 保留 499/500；当前 candidate 的 `backend-40-real` 5/5、12 unseen paraphrases 12/12、balanced 6/6 | `evidence/L2_REAL_MODEL_VALIDATION_V2.md`、`FINAL_RELEASE_CHECKLIST.md`、agent tests |
+| L2 retained failures | 30-case smoke 为 28/30；一个 provider timeout 与一个 semantic backend-ID failure 原样保留 | `FINAL_RELEASE_CHECKLIST.md`、外部 smoke 输出不作为归档原始证据 |
+| L2 product interaction | Hero → H → CNOT → Bell → 运行 → QASM；首个 Bell 路径无需 API Key | `loomq/web/`、`evidence/WEB_QA.md` |
+| L3 hybrid compiler | Hybrid-QASM 经典控制与量子操作编译为 stock RISC-V，并保留量子操作顺序 | `loomq/hybrid/`、官方与本地 L3 tests |
+| Real hardware +10 | 两个 canonical 平台 SpinQ + OriginQ；job ID、实际 QASM、raw export、metadata、截图可追溯 | `evidence/HARDWARE_EVIDENCE_SUMMARY.md`、`evidence/files/` |
+| Custom quantum RISC-V +8 | `custom-0` 编码、decoder/emulator、端到端测试 | `QUANTUM_RISCV_EXTENSION.md`、`tests/test_quantum_riscv_extension.py` |
+| Newcomer +4 | 真实外部新手数据尚未补齐；不能用 synthetic walkthrough 填数字 | `NOVICE_BLIND_TEST.md` = `WAIT_FOR_HUMAN_FINAL_REVIEW`；`evidence/SYNTHETIC_COGNITIVE_WALKTHROUGH.md` 仅供回归检测 |
+| Engineering / reproducibility | 新 clone、新环境从 candidate source 构建并跑核心 suite | `evidence/CLEAN_ROOM_REPRODUCTION.md`、`ARCHITECTURE.md` |
+| Scientific honesty | Z-basis correlation 不冒充 entanglement proof；tomography、density matrix、fidelity、PPT 的结论范围写清 | `evidence/SCIENTIFIC_CLAIMS_AUDIT.md` |
+| Security | 浏览器无硬编码 key；LLM 只读 server-side `LOOMQ_LLM_*`；current tree、staged diff、history 和路径 sweep | `evidence/SECURITY_SWEEP.md` |
 
-1. 从 Hero 先看承诺与理想 Bell 结果：**不懂量子也可以。先跑一次，再看发生了什么。**；`00` 与 `11` 各约一半只是计算基下的结果预期。
-2. 进入 **开始前，先认四件事**，再只看一个量子比特，先理解 `|0⟩` 是起点，再观察 `H` 如何改变重复测量的分布。
-3. 进入两量子比特故事，先认识 CNOT 的控制位/目标位规则，再用整条电路检查器确认 H、CNOT 与测量的顺序。
-4. 点击 **重做刚才的 Bell 实验**，载入同一条 Bell 电路；第一次体验不需要模型 Key。
-5. 点击 **执行这个实验**，检查真实本地 SDK 返回的 counts、解释、电路、OpenQASM 与验证结果。
-6. 先看归档硬件桥接，再到 **现在，把你的问题说成人话就行。**；Agent 是后续产品入口，连接模型仍是可选功能。
-7. 继续滚动到 X/Y/Z、tomography 与科学边界，确认多方向测量、数学重建和可追溯证据的关系。
+## 60-second product route
 
-## Technical evidence map
+1. Hero 点 **先看结果 ↓**，先看到理想 Bell `00/11`，不要把它当作纠缠证明。
+2. 点 **跟着做一次完整实验 →**，看 `|0⟩`、H 的约 50/50 重复测量和 CNOT 控制位/目标位。
+3. 点 **重做刚才的 Bell 实验**，再点 **运行这个实验**（载入后状态文案可能显示 **执行这个实验**），检查真实本地 SDK counts、解释、电路、OpenQASM 与验证结果。
+4. 打开归档 SpinQ / OriginQ 硬件桥接，再看 X/Y/Z 与 tomography 的科学边界。
+5. 点 **已经懂基础？直接问 LoomQ →**，查看生成、修复、后端推荐三个 L2 任务；模型连接是可选的。
 
-| Score area | Implementation | One verification command | Evidence |
-|---|---|---|---|
-| L1 unified layer | `loomq/compiler/`, `emitters/`, `runners/` | `.venv/bin/python evaluator.py --level l1 --target spinq,originq,braket` | `evidence/files/l1-public-report.json` |
-| L2 objective | `adapter.agent_chat`, `loomq/agent/`, `llm_client.py` | `.venv/bin/python tests/public_l2_fake.py` | `evidence/README.md` |
-| L2 historical real-model validation | Historical DeepSeek V4 Flash robustness set | `python scripts/validate_l2_stress.py` | `evidence/L2_REAL_MODEL_VALIDATION.md` — 101/102 |
-| L2 Clean V2 real-model validation | Bounded single-flight campaign, 500 unique cases | `python scripts/l2_extended_campaign.py --production --limit 500 --checkpoint 50 --resume` | `evidence/L2_REAL_MODEL_VALIDATION_V2.md` — 499/500, 509/540 attempts |
-| L2 interaction | `loomq/web/` | `.\starter_kit\scripts\run_web.ps1 -Port 8765` from fork root | `evidence/files/web-qa-*` |
-| L3 | `loomq/hybrid/`, `adapter.compile_hybrid` | `.venv/bin/python evaluator.py --level l3` | `tests/test_hybrid_compiler.py` |
-| Engineering | shared typed IR, independent verifier, pinned SDKs, scripts | `scripts/verify.sh` | `ARCHITECTURE.md` |
-| Custom RISC-V +8 | spec + emulator + encoded E2E | `.venv/bin/python -m unittest starter_kit.tests.test_quantum_riscv_extension -v` | `QUANTUM_RISCV_EXTENSION.md` |
-| Newcomer +4 | recommended no-LLM Bell path, readable Web, evidence boundary | start Web and click **重做刚才的 Bell 实验** | `USER_GUIDE.md`, `evidence/README.md` |
-| L1 hardware +10 | genuine SpinQ + OriginQ task records | `.venv/bin/python -m starter_kit.hardware.validate_evidence evidence/files/spinq-hardware-metadata.json evidence/files/originq-hardware-metadata.json` | `evidence/HARDWARE_EVIDENCE_SUMMARY.md` |
-| Vendor SDK cross-validation | 40 fixed-seed circuits × 3 local runners | read-only evidence validator | `evidence/files/vendor-sdk-cross-validation-summary.json` — 120/120 |
-| Fixed-seed fuzz | parser, measurement, hybrid, RISC-V and security corpus | read-only evidence validator | `evidence/files/offline-fuzz-summary.json` — 35,000/35,000 |
-| OriginQ modern Runtime (supplemental) | Five separate `WK_C180_2` probability-only packages; not required for L1 hardware ladder or +10 | `.venv/bin/python starter_kit/scripts/validate_runtime_evidence.py` | `evidence/ORIGINQ_REPRODUCIBILITY.md`, `evidence/files/originq_runtime_*-manifest.json` |
-| OriginQ Bell tomography (supplemental science) | Real `WK_C180_2` Bell Φ+ tomography; supplemental, not additional L1 hardware points | `.venv/bin/python starter_kit/scripts/validate_originq_tomography.py` | `evidence/ORIGINQ_BELL_TOMOGRAPHY.md`, `evidence/files/originq-tomography/originq_tomography_bell_phi_plus-corrected-density-audit.json` |
+## Verification commands
 
-Windows uses `.\.venv\Scripts\python.exe` in place of `.venv/bin/python`.
+Windows commands use `./.venv/Scripts/python.exe` from the repository root:
 
-## Dependency isolation (important for judges)
+- `starter_kit/evaluator.py --level l1 --target spinq,originq,braket` with JSON output directed to a temporary path.
+- `starter_kit/tests/public_l2_fake.py` for the public protocol contract.
+- `starter_kit/evaluator.py --level l3` plus the hybrid and RISC-V test modules.
+- `python -m unittest discover -s starter_kit/tests -v` and `python -m unittest discover -s tests -v`.
+- `starter_kit/scripts/run_web.ps1 -Port 8765`, then open `http://127.0.0.1:8765/`.
+- `starter_kit/scripts/verify.ps1` only after confirming its output paths will not overwrite canonical evidence.
 
-The **core evaluator does not require** `qpanda3-runtime` / `pyqpanda3`. Those are **optional** and isolated in `requirements-originq-runtime.txt`; they are only needed to reproduce the modern Origin Wukong 180-2 Runtime path (`originq_runtime_real.py`). The legacy `originq_real.py` (pyqpanda QCloud, chip 72) remains preserved for canonical two-platform hardware evidence. Installing only `requirements.txt` yields a clean core that runs all L1/L2/L3, SpinQ, Braket, and RISC-V tests.
+## Dependency and evidence boundaries
 
-## Scientific honesty boundary
+Core L1/L2/L3, SpinQ, Braket and RISC-V checks do not require the optional OriginQ Runtime packages. The canonical SpinQ and OriginQ packages are the only hardware packages counted for the two-platform ladder; `WK_C180_2` Runtime and tomography packages are supplemental.
 
-- **Simulator** results (SpinQit / pyQPanda CPUQVM / Braket LocalSimulator) are never described as real-QPU evidence.
-- **Real QPU** results are only the recorded task IDs with provider exports.
-- **Computational-basis correlation** (e.g. Bell 00/11) alone is reported as *correlation consistent with the target circuit*, not as a proof of entanglement — a classical mixture could produce the same Z-basis marginals.
-- **Three-basis Bell point estimates (2026-08-22)**: a pre-registered experiment on `WK_C180_2` qubits [49,58] (Z job `2C68A9D3`, X job `CA80432C`, Y job `5ABEAE90`, 1000 requested shots each) measured Cxx=0.9996, Cyy=−0.9987, Czz=0.9996, yielding |Cxx|+|Czz|=1.999 and F_Phi+=0.9994. The Runtime API exported provider probabilities rather than raw per-shot counts, so no independently justified confidence interval is available and this is **not** presented as a statistical entanglement witness or fidelity-threshold result. Theory (separable bound and formula) was checked programmatically before hardware submission; recompute point estimates with `.venv/bin/python starter_kit/scripts/compute_bell_witness.py` → `evidence/files/bell-witness-analysis.json`.
-- **Bell Φ+ tomography (supplemental scientific validation)**: job `F7287E16E8478E4DB5051105468DB638` on `WK_C180_2`, physical block [49,58], requested shots=1000, returned a provider-reconstructed 4×4 density matrix and provider fidelity `0.952449`. Independent fidelity is `0.952448944997`; the PPT minimum eigenvalue is `-0.456096768` and negativity is `0.456096768`. At the level of this density-matrix point estimate, the state is entangled under the 2×2 PPT criterion. **No statistical confidence interval is claimed.** This is not device-independent certification, a Bell inequality violation, loophole-free certification, or quantum advantage.
-- **GHZ-3** reports the real-QPU computational-basis distribution (P(000)≈0.703, P(111)≈0.108, P(011)≈0.187), **affected by hardware noise**; it is not claimed to be a noiseless perfect GHZ state and no multipartite-entanglement claim is made.
-- The **Multi** circuit's hardware distribution is compared programmatically against the LoomQ reference simulator (TVD ≈ 0.08, classical fidelity ≈ 0.993) as a distribution-consistency check, not an entanglement witness.
+Simulator results are never real-QPU evidence. Real-QPU claims require recorded provider task IDs and exports. `00/11` in the computational basis is reported as correlation consistent with the circuit, not proof of entanglement. Provider-reconstructed fidelity and PPT values are point estimates with no confidence interval claim; they are not device-independent certification, loophole-free certification, or quantum advantage. GHZ hardware distributions are noise-affected and do not carry a multipartite-entanglement claim.
 
-## Three L2 UX tasks
+The science section is a reference-based technical review, not a physical-expert endorsement. Existing provenance discrepancies remain recorded; raw bytes, metadata, manifests, checksums, hashes and canonical hardware evidence are not rewritten for tidiness.
 
-1. `帮我生成一个 GHZ 态并测量` — ask the Agent to write a circuit and explain its result.
-2. `这段 Bell 电路写错了，帮我修好` — observe one bounded correction attempt and only verified QASM reaching execution.
-3. `我有一个 15 比特任务，不想排队，应该选哪个后端？` — ask for a capability-based backend recommendation.
+## Human handoff
 
-Formal judging injects `LOOMQ_LLM_*` server-side and calls `adapter.agent_chat()` directly. The browser never accepts or stores model keys. The first Bell experiment works without an LLM.
-
-## Reproduction
-
-```powershell
-.\starter_kit\scripts\setup.ps1
-.\starter_kit\scripts\verify.ps1
-.\starter_kit\scripts\run_web.ps1 -Port 8765
-```
-
-Open `http://127.0.0.1:8765/`. Evidence is under `starter_kit/evidence/`; architecture boundaries are in `ARCHITECTURE.md`. Simulator results are never described as real-QPU evidence.
-
-## Detailed scientific and provenance note
-
-先看 Hero 的“把这个结果拆开看”，确认单 qubit 页面显示“测量后仍读到 0 或 1”；再观察 H 让重复分布变成约 50/50、CNOT 的控制位/目标位规则，以及 Bell 的 `00/11` 预测。点击“重做刚才的 Bell 实验”并运行 1024 shots，可看到 counts、验证、circuit 和 OpenQASM；继续到 X/Y/Z 面板，可看到 `Czz = 0.99955`、`Cxx = 0.99956`、`Cyy = -0.99865`，再读 tomography 的 Fidelity `0.952449`、PPT `λmin -0.4561` 与不确定性边界。
-
-本页是归档证据回放，不会提交新的硬件任务。既有 provenance 不一致按已授权规则记录：metadata 为 `a56b4e20039f…`，当前 raw JSON、density audit 和 `SHA256SUMS.txt` 为 `9f7b903131aa…`；不要把两者描述成完全一致，也不要修改 raw evidence。
+No new hardware job, push, or Issue was created by this closeout. Final candidate SHA, remote state, external human usability evidence, device review and any future submission remain human approval gates.

@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from unittest import mock
 
 from starter_kit import adapter
+from starter_kit.loomq.agent import service
 from starter_kit.loomq.compiler.parser import parse_qasm
 from starter_kit.loomq.agent.response import BackendConstraints
 from starter_kit.loomq.agent.selector import select_backends
@@ -176,6 +177,39 @@ class AgentServiceTests(unittest.TestCase):
         }
         self.assertEqual(rendered_ids, expected_ids)
         self.assertEqual(len(QueueingAPIHandler.request_payloads), 1)
+
+    def test_allowed_queue_semantics_produce_the_40_qubit_qpu(self):
+        prompt = "40 qubits，必须是真实量子硬件，可以排队和注册。官方能力表里哪个规范 backend ID 能满足？"
+
+        def contract_aware_completion(messages):
+            system_prompt = messages[0]["content"]
+            contract_is_explicit = (
+                "zero_queue=true" in system_prompt
+                and 'queue="none"' in system_prompt
+                and "zero_queue=false" in system_prompt
+                and "queueing is allowed" in system_prompt
+            )
+            content = model_plan(
+                "recommend",
+                constraints={
+                    "qubits": 40,
+                    "kind": "qpu",
+                    "zero_queue": False if contract_is_explicit else True,
+                    "avoid_paid": False,
+                    "accountless": False,
+                },
+                explanation="按约束筛选",
+            )
+            return {"choices": [{"message": {"role": "assistant", "content": content}}]}
+
+        with mock.patch.object(
+            service._llm_client,
+            "chat_completion",
+            side_effect=contract_aware_completion,
+        ):
+            reply = agent_chat(prompt)
+
+        self.assertIn("originq_wukong", reply)
 
     def test_no_matching_backend_is_explained_without_inventing_an_id(self):
         reply = self.call(

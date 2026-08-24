@@ -16,7 +16,7 @@
 
 这条 Bell 路径不需要模型 Key。自由输入的 Agent 任务才使用服务端提供的 `LOOMQ_LLM_*`；浏览器不要求初学者粘贴 Key，也不会把密钥写入 LocalStorage。
 
-## V7.2 Windows 本地服务
+## Windows 本地服务
 
 从当前仓库启动 Web 的唯一必要命令是：
 
@@ -67,7 +67,7 @@ An ideal local simulator can show that the program implements the intended mathe
 - **Counts look slightly uneven**: sampling fluctuation is expected. Use 8192 shots for scoring comparisons.
 - **Port 8765 is busy**: start with `--port 8766` and open that address.
 
-## V7.2.2 页面路线
+## 页面路线
 
 页面顺序是：承诺与入口 → 先看理想 Bell 结果 → 概念地基 → 单 qubit / H → CNOT 与整条电路 → 本地 Bell 实验 → 结果与 OpenQASM → 归档硬件桥接 → Agent 问题入口 → X/Y/Z 与 tomography。第一次出现的概念总是先讲刚刚发生的现象，再给名称和公式；科学边界随后单独展开。
 

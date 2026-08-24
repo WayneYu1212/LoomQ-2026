@@ -4,13 +4,13 @@
 
 > **One language → many quantum machines：** 一份 OpenQASM，经一次 typed-IR 验证，可落到 SpinQ、OriginQ 与 Braket；证据与评分说明在这一主叙事之后。
 
-> **评委 60 秒入口：** [JUDGE_GUIDE.md](JUDGE_GUIDE.md) · [评分自审](evidence/SCORECARD.md) · [最终人类清单](FINAL_HUMAN_CHECKLIST.md)
+> **评委 60 秒入口：** [JUDGE_GUIDE.md](JUDGE_GUIDE.md) · [评分自审](evidence/SCORECARD.md) · [最终发布清单](FINAL_RELEASE_CHECKLIST.md)
 
 LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现：L1 用统一编译层连接 SpinQ、OriginQ 与 Braket 三个后端；L2 把自然语言意图转为经过程序自验的电路；L3 将 Hybrid-QASM 的经典控制块编译为官方 stock RISC-V 子集。它面向从未接触量子计算的人文社科学生、设计师、产品经理、艺术创作者和普通 AI 用户。
 
 用户不必先读懂 QASM：先从一个问题和可运行实验出发，Agent 生成或修复程序，统一编译层产生 SpinQ QASM2、OriginIR 与 Braket QASM3，真实本地 SDK 返回采样结果，界面再解释“结果证明了什么，以及没有证明什么”。Hybrid-QASM 使用独立 lexer/parser，保留可审计的程序结构。
 
-![LoomQ Lab V7.2 零基础概念入口](evidence/files/v7.2-zero-knowledge-intro-1440.png)
+![LoomQ Lab 零基础概念入口](evidence/files/v7.2-zero-knowledge-intro-1440.png)
 
 ## 当前交付
 
@@ -220,7 +220,7 @@ docker run --rm loomq-submission
 
 ## 最终提交
 
-V7.2 当前只保留本地 candidate，`#119 / ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5` 继续作为 previous accepted fallback。除非获得明确授权，不自动 push、submit 或创建新的 Final Submission Issue。
+当前只保留本地 final candidate，`#119 / ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5` 继续作为 previous accepted fallback。除非获得明确授权，不自动 push、submit 或创建新的 Final Submission Issue。
 
 在未来获得授权、且最终 clean 并已推送的 commit 上运行：
 
@@ -230,10 +230,10 @@ python3 starter_kit/prepare_submission.py --team-id WayneYu1212
 
 随后用输出的公开 fork URL 与 40 位 SHA 创建上游“LoomQ 最终提交”Issue。只有 `submission:accepted` 标签和归档 SHA-256 回执才构成有效提交；截止为 **2026-08-25 12:00 UTC+8**。
 
-## V7.2 Web 交付边界
+## Web 交付边界
 
 当前 Web 入口把“承诺与入口 → 先看 Bell 结果 → 概念地基 → 拆解 H/CNOT 与整条电路 → 运行本地 Bell → 读结果/OpenQASM → 看归档硬件桥接 → 进入 Agent → 查看 X/Y/Z 与 tomography”组织成一条五分钟零基础路径。生产可编辑范围只包括 `starter_kit/loomq/web/static/index.html`、`styles.css`、`app.js` 以及本次同步的说明文档；后端、evaluator、requirements、submission.yaml、raw/hardware evidence 保持冻结。
 
-评委在页面的“评委证据路线”可先看计分真机 SpinQ + OriginQ，再看 Wukong X/Y/Z 与 tomography 补充科学，最后查看 Agent 三任务、统一 typed IR、L3 Hybrid-QASM 与 Custom RISC-V 的工程验证路径。该入口只导航现有材料，不生成新的 job 或硬件声明。
+评委在页面的证据路线可先看计分真机 SpinQ + OriginQ，再看 Wukong X/Y/Z 与 tomography 补充科学，最后查看 Agent 三任务、统一 typed IR、L3 Hybrid-QASM 与 Custom RISC-V 的工程验证路径。该入口只导航现有材料，不生成新的 job 或硬件声明。
 
 页面会把 `00/11` 明确写成计算基相关性，把 X/Y/Z 三个归档方向写成完整状态描述所需的更多信息，并把 Fidelity `0.952449` / PPT `-0.4561` 限定为 provider 重建点估计。归档哈希的既有 provenance discrepancy 如实保留：metadata 记录 `a56b4e20039f…`，当前 raw JSON、density audit 与 `SHA256SUMS.txt` 记录 `9f7b903131aa…`；本轮没有改写任何 raw bytes 或科学数值。
