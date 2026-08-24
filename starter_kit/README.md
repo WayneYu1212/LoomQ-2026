@@ -28,7 +28,7 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现：L1 用统一编译层�
 
 ## 5 分钟跑完第一次实验
 
-完成环境启动后，先看“开始前，先认四件事”，再点击“重做刚才的 Bell 实验”和“执行这个实验”：你会看到真实本地 SDK 返回的 Bell `00/11` counts、验证、解释、电路与 OpenQASM。页面同时标明计算基结果、完整纠缠判断和真实硬件结论各自需要的证据。此路径无需模型 Key。
+完成环境启动后，先看 Hero 的承诺与 `00/11` 理想结果，再读“开始前，先认四件事”，依次走过 H、CNOT、整条电路检查器、本地 Bell 实验、结果/OpenQASM 和归档硬件桥接；最后可在 Agent 入口用自然语言提出自己的问题。你会看到真实本地 SDK 返回的 Bell `00/11` counts、验证、解释、电路与 OpenQASM。页面同时标明计算基结果、完整纠缠判断和真实硬件结论各自需要的证据。第一次 Bell 路径无需模型 Key。
 
 ### Windows PowerShell
 
@@ -36,18 +36,15 @@ LoomQ Lab 是 LoomQ 2026 的 L1 + L2 + L3 参赛实现：L1 用统一编译层�
 
 ```powershell
 .\starter_kit\scripts\setup.ps1
-.\.venv\Scripts\python.exe -m starter_kit.loomq.web.server
+.\starter_kit\scripts\run_web.ps1 -Port 8765
 ```
 
 打开 `http://127.0.0.1:8765/`，点击“重做刚才的 Bell 实验”载入 Bell 示例，再点击“执行这个实验”。这个本地入口无需模型 Key，但仍真实运行所选量子 SDK；自由输入和 GHZ 等 Agent 任务需要配置 `LOOMQ_LLM_*`。
 
-V7.2 人类审核使用的 Windows 启动命令（从当前 worktree）：
+Windows 也可以直接用启动器检查依赖并运行 Web：
 
 ```powershell
-$Repo = (Get-Location).Path
-$Py = Join-Path $Repo '.venv\Scripts\python.exe'
-Set-Location $Repo
-& $Py -X utf8 -m starter_kit.loomq.web.server --host 127.0.0.1 --port 8765
+.\starter_kit\scripts\run_web.ps1 -Port 8765
 ```
 
 不要双击 `starter_kit/loomq/web/static/index.html`：`file://` 只能显示静态界面，无法连接 Python SDK 后端。若误开，页面会给出本地服务启动地址，不会误报成 LLM 配置错误。
@@ -235,7 +232,7 @@ python3 starter_kit/prepare_submission.py --team-id WayneYu1212
 
 ## V7.2 Web 交付边界
 
-当前 Web 入口把“看见结果 → 拆解 H/CNOT → 预测 Bell → 运行本地 Bell → 查看 X/Y/Z → 读 tomography”组织成一条新手路径。生产可编辑范围只包括 `starter_kit/loomq/web/static/index.html`、`styles.css`、`app.js` 以及本次同步的说明文档；后端、evaluator、requirements、submission.yaml、raw/hardware evidence 保持冻结。
+当前 Web 入口把“承诺与入口 → 先看 Bell 结果 → 概念地基 → 拆解 H/CNOT 与整条电路 → 运行本地 Bell → 读结果/OpenQASM → 看归档硬件桥接 → 进入 Agent → 查看 X/Y/Z 与 tomography”组织成一条五分钟零基础路径。生产可编辑范围只包括 `starter_kit/loomq/web/static/index.html`、`styles.css`、`app.js` 以及本次同步的说明文档；后端、evaluator、requirements、submission.yaml、raw/hardware evidence 保持冻结。
 
 评委在页面的“评委证据路线”可先看计分真机 SpinQ + OriginQ，再看 Wukong X/Y/Z 与 tomography 补充科学，最后查看 Agent 三任务、统一 typed IR、L3 Hybrid-QASM 与 Custom RISC-V 的工程验证路径。该入口只导航现有材料，不生成新的 job 或硬件声明。
 

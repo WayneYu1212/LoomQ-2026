@@ -10,6 +10,28 @@
   var launchNotice = document.querySelector('#launch-notice');
   var runtimeStatus = document.querySelector('#runtime-status');
   var runtimeStatusCopy = document.querySelector('#runtime-status-copy');
+  var backendAvailabilityCopy = document.querySelector('#backend-availability-copy');
+  var hSingleRun = document.querySelector('#h-single-run');
+  var hShotsRun = document.querySelector('#h-shots-run');
+  var hSingleResult = document.querySelector('#h-single-result');
+  var hZeroBar = document.querySelector('#h-zero-bar');
+  var hOneBar = document.querySelector('#h-one-bar');
+  var hZeroCount = document.querySelector('#h-zero-count');
+  var hOneCount = document.querySelector('#h-one-count');
+  var cnotRuleChoices = [].slice.call(document.querySelectorAll('.cnot-rule-choice'));
+  var cnotRuleResult = document.querySelector('#cnot-rule-result');
+  var cnotControlState = document.querySelector('#cnot-control-state');
+  var cnotTargetState = document.querySelector('#cnot-target-state');
+  var bellOneShot = document.querySelector('#bell-one-shot');
+  var bellAutoShots = document.querySelector('#bell-auto-shots');
+  var bellShotResult = document.querySelector('#bell-shot-result');
+  var bellZeroBar = document.querySelector('#bell-zero-bar');
+  var bellOneBar = document.querySelector('#bell-one-bar');
+  var bellZeroCount = document.querySelector('#bell-zero-count');
+  var bellOneCount = document.querySelector('#bell-one-count');
+  var circuitInspectSteps = [].slice.call(document.querySelectorAll('.circuit-inspect-step'));
+  var circuitInspectState = document.querySelector('#circuit-inspect-state');
+  var circuitInspectCopy = document.querySelector('#circuit-inspect-copy');
   var workspace = document.querySelector('#workspace');
   var resultPanel = document.querySelector('#result-panel');
   var verificationPanel = document.querySelector('#verification-panel');
@@ -30,6 +52,7 @@
   var qubitStoryLine = document.querySelector('#qubit-story-line');
   var bellStoryLine = document.querySelector('#bell-story-line');
   var quickActionButtons = [].slice.call(document.querySelectorAll('.quick-action'));
+  var agentPromptCards = [].slice.call(document.querySelectorAll('.agent-prompt-card'));
   var focusBackendAction = document.querySelector('#focus-backend-action');
   var scrollTutorials = [].slice.call(document.querySelectorAll('.scroll-tutorial'));
   var stepperSteps = [].slice.call(document.querySelectorAll('.stepper-step'));
@@ -49,6 +72,10 @@
   var isReduced = motionQuery.matches;
   var isStaticFile = window.location.protocol === 'file:';
   var localServiceUrl = 'http:' + '//127.0.0.1:8765/';
+  var backendAvailabilityReady = isStaticFile;
+  var lastBackendAvailability = null;
+  var hAnimationCancel = null;
+  var bellAnimationCancel = null;
   var selectedExample = null;
   var scrollFrameId = 0;
   var stepIndex = 0;
@@ -297,7 +324,7 @@
     var bellDeck = document.querySelector('#bell .section-deck');
     if (bellDeck) {
       bellDeck.classList.add('centered-copy', 'v71-copy');
-      setBilingualText(bellDeck, '前面我们只看了一个量子比特。\n现在把第二个量子比特也加进来，看看两个量子比特怎样一起变化。', 'So far we have looked at one qubit.\nNow add a second qubit and see how the two change together.');
+      setBilingualText(bellDeck, '这一章会把 H 和 CNOT 串起来：先认识规则，再看 Bell 结果。', 'This chapter connects H and CNOT: learn the rule first, then inspect the Bell result.');
     }
     var bellHeading = document.querySelector('#bell .section-heading');
     if (bellHeading && !bellHeading.querySelector('.cnot-intro')) {
@@ -308,10 +335,11 @@
     }
     var cnotRule = document.querySelector('.cnot-rule');
     if (cnotRule) {
-      var cnotParagraphs = cnotRule.querySelectorAll('p');
-      if (cnotParagraphs.length) setBilingualText(cnotParagraphs[cnotParagraphs.length - 1], '控制位是 0，目标位保持原样。\n控制位是 1，目标位翻转。', 'When the control is 0, the target stays the same.\nWhen the control is 1, the target flips.');
-      if (cnotParagraphs.length < 2) {
-        cnotRule.appendChild(makeBilingualNode('p', 'centered-copy v71-copy', '控制位是 1，目标位翻转。', 'When the control is 1, the target flips.'));
+      var cnotResultCopy = cnotRule.querySelector('.cnot-rule-result-copy');
+      if (cnotResultCopy) setBilingualText(cnotResultCopy, '控制位是 0：目标位不变。', 'Control is 0: the target stays unchanged.');
+      else {
+        var cnotParagraphs = cnotRule.querySelectorAll('p');
+        if (cnotParagraphs.length) setBilingualText(cnotParagraphs[cnotParagraphs.length - 1], '控制位是 0：目标位不变。', 'Control is 0: the target stays unchanged.');
       }
     }
     var climax = document.querySelector('.narrative-climax');
@@ -389,7 +417,7 @@
         modelBody.insertBefore(optionalExplanation, modelParagraphs[1]);
       }
       var evaluatorNote = modelBody.querySelector('.model-evaluator-note');
-      if (evaluatorNote) setBilingualText(evaluatorNote, '模型配置只影响“自己的问题”功能；现成 Bell 实验不受影响。', 'Model configuration only affects the “your own question” feature; the built-in Bell experiment is unaffected.');
+      if (evaluatorNote) setBilingualText(evaluatorNote, '模型配置只影响“自己的问题”功能；现成 Bell 实验不受影响。普通用户无需为第一次体验配置它。', 'Model configuration only affects the “your own question” feature; the built-in Bell experiment is unaffected. Ordinary users do not need to configure it for a first experience.');
     }
     if (formStatus) setBilingualText(formStatus, '第一次体验 LoomQ，不需要 API Key；你可以直接运行现成的 Bell 实验。', 'You do not need an API key for your first LoomQ experience; run the built-in Bell experiment directly.');
     var bellActionDescription = document.querySelector('.quick-action--primary .quick-action-description');
@@ -560,6 +588,173 @@
     });
   }
 
+  function runTeachingAnimation(duration, update, complete) {
+    var frameId = 0;
+    var startTime = 0;
+    if (isReduced) {
+      update(1);
+      if (complete) complete();
+      return function () {};
+    }
+    function frame(now) {
+      if (!startTime) startTime = now;
+      var progress = clamp((now - startTime) / duration, 0, 1);
+      update(progress);
+      if (progress >= 1) {
+        frameId = 0;
+        if (complete) complete();
+        return;
+      }
+      frameId = window.requestAnimationFrame(frame);
+    }
+    frameId = window.requestAnimationFrame(frame);
+    return function () {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    };
+  }
+
+  function renderHTeachingCounts(zeroCount, oneCount) {
+    var total = Math.max(zeroCount + oneCount, 1);
+    var zeroShare = (zeroCount / total) * 100;
+    var oneShare = (oneCount / total) * 100;
+    if (hZeroBar) hZeroBar.style.width = zeroShare.toFixed(2) + '%';
+    if (hOneBar) hOneBar.style.width = oneShare.toFixed(2) + '%';
+    if (hZeroCount) hZeroCount.textContent = String(zeroCount);
+    if (hOneCount) hOneCount.textContent = String(oneCount);
+  }
+
+  function initHInteraction() {
+    if (!hSingleRun || !hShotsRun) return;
+    var zeroCount = 0;
+    var oneCount = 0;
+    var oneShotIndex = 0;
+    var oneShotSequence = [0, 1, 0, 1];
+    renderHTeachingCounts(zeroCount, oneCount);
+    hSingleRun.addEventListener('click', function () {
+      if (hAnimationCancel) hAnimationCancel();
+      var value = oneShotSequence[oneShotIndex % oneShotSequence.length];
+      oneShotIndex += 1;
+      if (value === 0) zeroCount += 1;
+      else oneCount += 1;
+      renderHTeachingCounts(zeroCount, oneCount);
+      setBilingualText(hSingleResult, value === 0 ? '这一次测量读到 0。一次结果只有一个值。' : '这一次测量读到 1。一次结果只有一个值。', value === 0 ? 'This measurement returned 0. One shot has one outcome.' : 'This measurement returned 1. One shot has one outcome.');
+    });
+    hShotsRun.addEventListener('click', function () {
+      if (hAnimationCancel) hAnimationCancel();
+      var startZero = zeroCount;
+      var startOne = oneCount;
+      hAnimationCancel = runTeachingAnimation(700, function (progress) {
+        zeroCount = Math.round(startZero + ((50 - startZero) * progress));
+        oneCount = Math.round(startOne + ((50 - startOne) * progress));
+        renderHTeachingCounts(zeroCount, oneCount);
+      }, function () {
+        zeroCount = 50;
+        oneCount = 50;
+        renderHTeachingCounts(zeroCount, oneCount);
+        setBilingualText(hSingleResult, '100 次测量后，0 和 1 各出现约一半。', 'After 100 measurements, 0 and 1 each appear about half the time.');
+      });
+    });
+  }
+
+  function initCnotInteraction() {
+    if (!cnotRuleChoices.length || !cnotRuleResult) return;
+    var resultCopy = cnotRuleResult.querySelector('.cnot-rule-result-copy');
+    function chooseCnot(choice) {
+      var input = choice.dataset.input || '00';
+      var output = choice.dataset.output || input;
+      var control = input.charAt(0);
+      var targetBefore = input.charAt(1);
+      var targetAfter = output.charAt(1);
+      cnotRuleChoices.forEach(function (item) { item.setAttribute('aria-pressed', item === choice ? 'true' : 'false'); });
+      if (resultCopy) {
+        setBilingualText(
+          resultCopy,
+          control === '0' ? '控制位是 0：目标位不变。' : '控制位是 1：目标位翻转。',
+          control === '0' ? 'Control is 0: the target stays unchanged.' : 'Control is 1: the target flips.'
+        );
+      }
+      setBilingualText(cnotControlState, 'q0 = ' + control + ' · 控制位', 'q0 = ' + control + ' · control');
+      setBilingualText(cnotTargetState, 'q1：' + targetBefore + ' → ' + targetAfter + ' · 目标位', 'q1: ' + targetBefore + ' → ' + targetAfter + ' · target');
+      if (cnotTargetState) {
+        cnotTargetState.classList.remove('is-flipping');
+        if (control === '1') {
+          window.requestAnimationFrame(function () { cnotTargetState.classList.add('is-flipping'); });
+        }
+      }
+    }
+    cnotRuleChoices.forEach(function (choice) { choice.addEventListener('click', function () { chooseCnot(choice); }); });
+    chooseCnot(cnotRuleChoices[0]);
+  }
+
+  function initCircuitInspect() {
+    if (!circuitInspectSteps.length || !circuitInspectState || !circuitInspectCopy) return;
+    var steps = [
+      { state: '|00⟩', zh: '两个量子比特都从 0 状态开始。', en: 'Both qubits start in the 0 state.' },
+      { state: '(|00⟩ + |10⟩) / √2', zh: 'H 作用在 q0 上；在测量前，状态用两个基态的叠加来描述。', en: 'H acts on q0; before measurement, the state is described as a superposition of two basis states.' },
+      { state: '(|00⟩ + |11⟩) / √2', zh: 'CNOT 让 q0 的控制规则作用到 q1，得到这里的 Bell Φ+ 准备。', en: 'CNOT applies the q0 control rule to q1, giving the Bell Φ+ preparation shown here.' },
+      { state: '00 或 11', zh: '每次测量只读出一个结果；重复很多次，00 和 11 各约一半。', en: 'Each measurement returns one result; repeated many times, 00 and 11 appear about half each.' }
+    ];
+    function chooseStep(button) {
+      var index = Number(button.dataset.circuitStep || 0);
+      var step = steps[index] || steps[0];
+      circuitInspectSteps.forEach(function (item) { item.setAttribute('aria-pressed', item === button ? 'true' : 'false'); item.classList.toggle('is-selected', item === button); });
+      circuitInspectState.textContent = step.state;
+      setBilingualText(circuitInspectCopy, step.zh, step.en);
+    }
+    circuitInspectSteps.forEach(function (button) { button.addEventListener('click', function () { chooseStep(button); }); });
+    chooseStep(circuitInspectSteps[0]);
+  }
+
+  function renderBellTeachingCounts(zeroShare, oneShare) {
+    if (bellZeroBar) bellZeroBar.style.width = zeroShare.toFixed(2) + '%';
+    if (bellOneBar) bellOneBar.style.width = oneShare.toFixed(2) + '%';
+    if (bellZeroCount) bellZeroCount.textContent = zeroShare.toFixed(0) + '%';
+    if (bellOneCount) bellOneCount.textContent = oneShare.toFixed(0) + '%';
+  }
+
+  function initBellShotAccumulator() {
+    if (!bellOneShot || !bellAutoShots) return;
+    var oneShotIndex = 0;
+    var oneShotSequence = ['00', '11', '00', '11'];
+    var zeroShare = 0;
+    var oneShare = 0;
+    renderBellTeachingCounts(zeroShare, oneShare);
+    bellOneShot.addEventListener('click', function () {
+      if (bellAnimationCancel) bellAnimationCancel();
+      var result = oneShotSequence[oneShotIndex % oneShotSequence.length];
+      oneShotIndex += 1;
+      setBilingualText(bellShotResult, '这一次测量读到 ' + result + '。一次测量看不出分布；shots 是把同一份电路重新准备并测量很多次。', 'This measurement returned ' + result + '. One measurement cannot show a distribution; shots means preparing the same circuit and measuring it many times.');
+    });
+    bellAutoShots.addEventListener('click', function () {
+      if (bellAnimationCancel) bellAnimationCancel();
+      bellAnimationCancel = runTeachingAnimation(800, function (progress) {
+        zeroShare = 50 * progress;
+        oneShare = 50 * progress;
+        renderBellTeachingCounts(zeroShare, oneShare);
+      }, function () {
+        zeroShare = 50;
+        oneShare = 50;
+        renderBellTeachingCounts(zeroShare, oneShare);
+        setBilingualText(bellShotResult, '100 次测量后，00 和 11 各约 50%。一次测量看不出分布；shots 是把同一份电路重新准备并测量很多次。', 'After 100 measurements, 00 and 11 are about 50% each. One measurement cannot show a distribution; shots means preparing the same circuit and measuring it many times.');
+      });
+    });
+  }
+
+  function initAgentPromptCards() {
+    if (!agentPromptCards.length || !promptField) return;
+    agentPromptCards.forEach(function (card) {
+      card.addEventListener('click', function () {
+        promptField.value = card.dataset.agentPrompt || '';
+        selectedExample = null;
+        quickActionButtons.forEach(function (button) { button.classList.remove('is-selected'); });
+        var experiment = document.querySelector('#experiment');
+        if (experiment) experiment.scrollIntoView({ behavior: isReduced ? 'auto' : 'smooth', block: 'start' });
+        window.setTimeout(function () { promptField.focus(); }, isReduced ? 0 : 450);
+      });
+    });
+  }
+
   function applyLanguage(language) {
     currentLanguage = language === 'en' ? 'en' : 'zh';
     document.documentElement.lang = currentLanguage === 'zh' ? 'zh-CN' : 'en';
@@ -584,6 +779,7 @@
     bellStoryState = null;
     updateScrollTutorials();
     renderPauli(currentPauliBasis);
+    if (lastBackendAvailability) renderBackendAvailability(lastBackendAvailability);
     if (lastExperimentData) {
       if (lastExperimentData.kind === 'recommendation') showRecommendationWorkspace(lastExperimentData);
       else showCircuitWorkspace(lastExperimentData);
@@ -599,25 +795,86 @@
     runtimeStatus.dataset.state = state || '';
   }
 
+  function renderBackendAvailability(backends) {
+    lastBackendAvailability = backends || {};
+    var availableKeys = [];
+    var optionLabels = [];
+    if (targetField) {
+      [].slice.call(targetField.options).forEach(function (option) {
+        var key = option.value;
+        var detail = lastBackendAvailability[key] || {};
+        var available = detail.available === true;
+        var baseLabel = option.dataset.labelZh || option.dataset.labelEn || option.textContent.replace(/\s+·.*$/, '');
+        option.dataset.labelZh = option.dataset.labelZh || baseLabel;
+        option.dataset.labelEn = option.dataset.labelEn || baseLabel;
+        option.disabled = !available;
+        option.textContent = currentLanguage === 'zh'
+          ? option.dataset.labelZh + (available ? '' : ' · SDK 不可用')
+          : option.dataset.labelEn + (available ? '' : ' · SDK unavailable');
+        if (available) {
+          availableKeys.push(key);
+          optionLabels.push(currentLanguage === 'zh' ? option.dataset.labelZh : option.dataset.labelEn);
+        }
+      });
+      if (availableKeys.indexOf(targetField.value) === -1) targetField.value = availableKeys[0] || '';
+      targetField.disabled = availableKeys.length === 0;
+    }
+    backendAvailabilityReady = availableKeys.length > 0;
+    if (backendAvailabilityCopy) {
+      if (availableKeys.length) {
+        setBilingualText(
+          backendAvailabilityCopy,
+          '可用本地后端：' + optionLabels.join('、') + '。现成 Bell 实验可以直接运行。',
+          'Available local backends: ' + optionLabels.join(', ') + '. The ready-made Bell experiment can run directly.'
+        );
+        backendAvailabilityCopy.classList.remove('is-error');
+      } else {
+        setBilingualText(
+          backendAvailabilityCopy,
+          '没有检测到可用的本地 SDK。请运行 .\\starter_kit\\scripts\\setup.ps1 后再启动 .\\starter_kit\\scripts\\run_web.ps1。',
+          'No local SDK backend is available. Run .\\starter_kit\\scripts\\setup.ps1, then start .\\starter_kit\\scripts\\run_web.ps1.'
+        );
+        backendAvailabilityCopy.classList.add('is-error');
+      }
+    }
+    return availableKeys.length > 0;
+  }
+
   function loadRuntimeStatus() {
     if (isStaticFile) {
       launchNotice.hidden = false;
       setRuntimeStatus(pick('实验接口未启动 · 请通过 LoomQ 本地服务打开', 'Experiment service offline · open LoomQ through the local service'), 'offline');
       return;
     }
+    backendAvailabilityReady = false;
+    if (targetField) targetField.disabled = true;
     fetch('/api/health', { headers: { 'Accept': 'application/json' } })
       .then(function (response) {
         if (!response.ok) throw new Error('health endpoint unavailable');
         return response.json();
       })
       .then(function (health) {
+        var hasAvailableBackend = renderBackendAvailability(health.backends || {});
         if (health.llm_configured) {
-          setRuntimeStatus(pick('模型服务已连接 · 可以运行自己的问题', 'Model service connected · your own question can run'), 'connected');
+          setRuntimeStatus(
+            hasAvailableBackend
+              ? pick('模型服务已连接 · Bell 实验和自己的问题都可以运行', 'Model service connected · Bell and your own question can run')
+              : pick('模型服务已连接 · 但本地 SDK 后端不可用', 'Model service connected · but no local SDK backend is available'),
+            hasAvailableBackend ? 'connected' : 'offline'
+          );
         } else {
-          setRuntimeStatus(pick('还没有连接模型 · 现成的 Bell 实验仍可直接运行', 'No model connected yet · the Bell experiment still runs directly'), 'local');
+          setRuntimeStatus(
+            hasAvailableBackend
+              ? pick('还没有连接模型 · 现成的 Bell 实验仍可直接运行', 'No model connected yet · the Bell experiment still runs directly')
+              : pick('本地 SDK 后端不可用 · 请先完成本地设置', 'Local SDK backend unavailable · complete the local setup first'),
+            hasAvailableBackend ? 'local' : 'offline'
+          );
         }
       })
       .catch(function () {
+        backendAvailabilityReady = false;
+        if (targetField) targetField.disabled = true;
+        if (backendAvailabilityCopy) setBilingualText(backendAvailabilityCopy, '无法读取本地 SDK 状态，请确认服务仍在运行。', 'Could not read local SDK status; check that the service is running.');
         setRuntimeStatus(pick('本地服务暂时不可用 · 请确认 Python 服务仍在运行', 'Local service unavailable · check that the Python service is running'), 'offline');
       });
   }
@@ -633,6 +890,7 @@
       return pick('当前打开的是静态页面，所以实验按钮暂时无法连接本地接口。运行 LoomQ 本地服务后，再从浏览器打开：', 'This is a static page, so the experiment button cannot reach the local service yet. Start the LoomQ local service, then open: ') + localServiceUrl;
     }
     if (error.code === 'agent_unavailable') return error.message;
+    if (error.code === 'backend_unavailable') return error.message;
     if (error.code === 'invalid_request') return pick('请检查你的描述或实验设置：', 'Input validation failed: ') + error.message;
     if (error.code === 'execution_failed') return pick('这次实验没有完成：', 'The quantum SDK did not complete the run: ') + error.message;
     if (error instanceof TypeError || error.code === 'network_unavailable') {
@@ -987,41 +1245,80 @@
     }
   }
 
+  function groupCircuitColumns(operations) {
+    var columns = [];
+    operations.forEach(function (operation) {
+      var previous = columns[columns.length - 1];
+      var isMeasurement = operation.type === 'measurement';
+      var previousIsMeasurementColumn = previous && previous.every(function (item) { return item.type === 'measurement'; });
+      if (isMeasurement && previousIsMeasurementColumn) previous.push(operation);
+      else columns.push([operation]);
+    });
+    return columns;
+  }
+
   function renderCircuit(circuit) {
     clear(circuitView);
     var operations = circuit.operations || [];
+    var columns = groupCircuitColumns(operations);
     var qubitCount = circuit.qubit_count || 0;
     var layout = makeEl('div', 'circuit-layout');
     var labels = makeEl('div', 'circuit-labels');
     var grid = makeEl('div', 'circuit-grid');
-    grid.style.setProperty('--columns', Math.max(operations.length, 1));
+    grid.style.setProperty('--columns', Math.max(columns.length, 1));
     grid.style.setProperty('--rows', Math.max(qubitCount, 1));
     for (var q = 0; q < qubitCount; q += 1) labels.appendChild(makeEl('span', '', 'q' + q));
-    operations.forEach(function (operation, operationIndex) {
-      if (operation.type === 'gate' && operation.qubits && operation.qubits.length > 1) {
+    columns.forEach(function (column, columnIndex) {
+      var operation = column.filter(function (item) { return item.type === 'gate' && item.qubits && item.qubits.length > 1; })[0] || null;
+      var measurementByQubit = {};
+      column.forEach(function (item) {
+        if (item.type === 'measurement') measurementByQubit[item.qubit] = item;
+      });
+      if (operation) {
+        var controlQubit = operation.qubits[0];
+        var targetQubit = operation.qubits[1];
         var connector = makeEl('span', 'circuit-connector');
-        connector.style.gridColumn = String(operationIndex + 1);
-        connector.style.gridRow = '1 / span ' + qubitCount;
+        var connectorTop = Math.min(controlQubit, targetQubit);
+        var connectorHeight = Math.abs(targetQubit - controlQubit) + 1;
+        connector.style.gridColumn = String(columnIndex + 1);
+        connector.style.gridRow = String(connectorTop + 1) + ' / span ' + connectorHeight;
         connector.setAttribute('aria-hidden', 'true');
         grid.appendChild(connector);
       }
       for (var row = 0; row < qubitCount; row += 1) {
         var cell = makeEl('div', 'circuit-cell');
-        cell.style.gridColumn = String(operationIndex + 1);
+        cell.style.gridColumn = String(columnIndex + 1);
         cell.style.gridRow = String(row + 1);
-        if (operation.type === 'measurement' && operation.qubit === row) {
-          cell.appendChild(makeEl('span', 'measurement-token', 'M'));
-        } else if (operation.type === 'gate' && operation.qubits && operation.qubits.indexOf(row) !== -1) {
-          var position = operation.qubits.indexOf(row);
+        cell.dataset.qubit = 'q' + row;
+        if (measurementByQubit[row]) {
+          var measurementGlyph = makeEl('span', 'measurement-glyph', 'M');
+          measurementGlyph.setAttribute('aria-label', pick('测量 q' + row, 'Measure q' + row));
+          cell.appendChild(measurementGlyph);
+        } else if (operation && operation.qubits.indexOf(row) !== -1) {
           var operationName = String(operation.name || '').toLowerCase();
-          if (operation.qubits.length > 1 && position < operation.qubits.length - 1) {
-            cell.appendChild(makeEl('span', 'cnot-control'));
-          } else if (operation.qubits.length > 1 && (operationName === 'cx' || operationName === 'cnot')) {
-            cell.appendChild(makeEl('span', 'cnot-target', 'X'));
+          var controlQubit = operation.qubits[0];
+          var targetQubit = operation.qubits[1];
+          if (row === controlQubit) {
+            var controlGlyph = makeEl('span', 'cnot-control');
+            controlGlyph.setAttribute('aria-label', pick('控制位 q0', 'control q0'));
+            controlGlyph.title = pick('控制位 q0', 'control q0');
+            cell.appendChild(controlGlyph);
+          } else if (row === targetQubit && (operationName === 'cx' || operationName === 'cnot')) {
+            var targetGlyph = makeEl('span', 'cnot-target', 'X');
+            targetGlyph.setAttribute('aria-label', pick('目标位 q1', 'target q1'));
+            targetGlyph.title = pick('目标位 q1', 'target q1');
+            cell.appendChild(targetGlyph);
           } else {
             var label = String(operation.name || 'gate').toUpperCase();
             if (operation.params && operation.params.length) label += '(' + Number(operation.params[0]).toFixed(2) + ')';
             cell.appendChild(makeEl('span', 'gate-token', label));
+          }
+        } else {
+          var singleOperation = column.filter(function (item) { return item.type === 'gate' && item.qubits && item.qubits.indexOf(row) !== -1; })[0];
+          if (singleOperation) {
+            var singleLabel = String(singleOperation.name || 'gate').toUpperCase();
+            if (singleOperation.params && singleOperation.params.length) singleLabel += '(' + Number(singleOperation.params[0]).toFixed(2) + ')';
+            cell.appendChild(makeEl('span', 'gate-token', singleLabel));
           }
         }
         grid.appendChild(cell);
@@ -1187,6 +1484,15 @@
       launchNotice.focus({ preventScroll: true });
       return;
     }
+    if (!backendAvailabilityReady || !targetField || targetField.disabled || !targetField.value) {
+      formStatus.textContent = pick(
+        '当前没有可用的本地 SDK 后端。请先运行 .\\starter_kit\\scripts\\setup.ps1，再用 .\\starter_kit\\scripts\\run_web.ps1 启动。',
+        'No local SDK backend is available. Run .\\starter_kit\\scripts\\setup.ps1, then start .\\starter_kit\\scripts\\run_web.ps1.'
+      );
+      formStatus.classList.add('is-error');
+      if (backendAvailabilityCopy) backendAvailabilityCopy.focus({ preventScroll: true });
+      return;
+    }
     var prompt = promptField.value.trim();
     var shots = Number(shotsField.value);
     if (!prompt) {
@@ -1253,6 +1559,11 @@
   initPauliTabs();
   initV71PublicExperience();
   initV72PublicCopy();
+  initHInteraction();
+  initCnotInteraction();
+  initCircuitInspect();
+  initBellShotAccumulator();
+  initAgentPromptCards();
   repairStaticTermHelpMarkup();
   initTermHelp();
   initAnchorFocus();

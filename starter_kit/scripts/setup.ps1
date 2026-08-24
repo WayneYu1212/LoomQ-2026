@@ -18,4 +18,4 @@ if (-not (Test-Path -LiteralPath $pythonPath)) {
 
 Write-Output "LoomQ environment ready: $pythonPath"
 Write-Output "Public evaluator: $pythonPath starter_kit\evaluator.py --level l1 --target spinq,originq,braket"
-Write-Output "LoomQ Lab: $pythonPath -m starter_kit.loomq.web.server"
+Write-Output "LoomQ Lab: .\starter_kit\scripts\run_web.ps1 -Port 8765"

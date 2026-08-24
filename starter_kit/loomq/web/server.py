@@ -22,6 +22,7 @@ from ..compiler.ir import Gate, Measurement
 from ..compiler.metrics import circuit_metrics
 from ..compiler.parser import parse_qasm
 from ..agent.verifier import VerificationReport, verify_qasm
+from ..runners import backend_availability
 
 
 VERSION = "0.2.0"
@@ -118,6 +119,22 @@ def _verification_payload(report: VerificationReport, backend: str) -> dict[str,
     }
 
 
+class BackendUnavailableError(RuntimeError):
+    """Raised before execution when a selected local SDK is not importable."""
+
+
+def _require_backend_available(target: str) -> None:
+    details = backend_availability().get(target)
+    if details and details.get("available") is True:
+        return
+    dependency = str(details.get("dependency", "the selected SDK")) if details else "the selected SDK"
+    raise BackendUnavailableError(
+        f"本地后端 {target} 当前不可用：缺少 {dependency}。"
+        "请在本仓库根目录运行 .\\starter_kit\\scripts\\setup.ps1，"
+        "然后使用 .\\starter_kit\\scripts\\run_web.ps1 启动。"
+    )
+
+
 def _validate_request(payload: object) -> tuple[str, str, int, str | None]:
     if not isinstance(payload, dict):
         raise ValueError("request body must be a JSON object")
@@ -163,6 +180,7 @@ def _experiment(payload: object) -> dict[str, Any]:
         }
 
     report = verify_qasm(qasm)
+    _require_backend_available(target)
     result = adapter.run(qasm, target, shots)
     return {
         "mode": mode,
@@ -215,6 +233,7 @@ class _LoomQHandler(BaseHTTPRequestHandler):
                     "version": VERSION,
                     "llm_configured": _llm_configured(),
                     "configuration_source": "environment",
+                    "backends": backend_availability(),
                 },
             )
             return
@@ -264,6 +283,9 @@ class _LoomQHandler(BaseHTTPRequestHandler):
             result = _experiment(payload)
         except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as exc:
             self._error(HTTPStatus.BAD_REQUEST, "invalid_request", str(exc))
+            return
+        except BackendUnavailableError as exc:
+            self._error(HTTPStatus.SERVICE_UNAVAILABLE, "backend_unavailable", str(exc))
             return
         except RuntimeError as exc:
             message = str(exc)

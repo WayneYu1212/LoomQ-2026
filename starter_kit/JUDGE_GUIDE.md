@@ -6,12 +6,13 @@ LoomQ lets people without QASM or quantum-SDK experience describe intent, receiv
 
 ## 60-second experience
 
-1. 从 Hero 进入 **开始前，先认四件事**：量子计算、量子比特、今天的 Bell 实验和四个基础符号。
-2. 向下只看一个量子比特，先理解 `|0⟩` 是起点，再观察 `H` 如何改变重复测量的分布。
-3. 进入两量子比特故事，先认识 CNOT 的控制位/目标位规则，再看 Bell 的 `00/11` 相关结果。
+1. 从 Hero 先看承诺与理想 Bell 结果：**不懂量子也可以。先跑一次，再看发生了什么。**；`00` 与 `11` 各约一半只是计算基下的结果预期。
+2. 进入 **开始前，先认四件事**，再只看一个量子比特，先理解 `|0⟩` 是起点，再观察 `H` 如何改变重复测量的分布。
+3. 进入两量子比特故事，先认识 CNOT 的控制位/目标位规则，再用整条电路检查器确认 H、CNOT 与测量的顺序。
 4. 点击 **重做刚才的 Bell 实验**，载入同一条 Bell 电路；第一次体验不需要模型 Key。
 5. 点击 **执行这个实验**，检查真实本地 SDK 返回的 counts、解释、电路、OpenQASM 与验证结果。
-6. 继续滚动到 X/Y/Z、tomography 与硬件说明，确认多方向测量、数学重建和可追溯证据的关系。
+6. 先看归档硬件桥接，再到 **现在，把你的问题说成人话就行。**；Agent 是后续产品入口，连接模型仍是可选功能。
+7. 继续滚动到 X/Y/Z、tomography 与科学边界，确认多方向测量、数学重建和可追溯证据的关系。
 
 ## Technical evidence map
 
@@ -21,7 +22,7 @@ LoomQ lets people without QASM or quantum-SDK experience describe intent, receiv
 | L2 objective | `adapter.agent_chat`, `loomq/agent/`, `llm_client.py` | `.venv/bin/python tests/public_l2_fake.py` | `evidence/README.md` |
 | L2 historical real-model validation | Historical DeepSeek V4 Flash robustness set | `python scripts/validate_l2_stress.py` | `evidence/L2_REAL_MODEL_VALIDATION.md` — 101/102 |
 | L2 Clean V2 real-model validation | Bounded single-flight campaign, 500 unique cases | `python scripts/l2_extended_campaign.py --production --limit 500 --checkpoint 50 --resume` | `evidence/L2_REAL_MODEL_VALIDATION_V2.md` — 499/500, 509/540 attempts |
-| L2 interaction | `loomq/web/` | `.venv/bin/python -m starter_kit.loomq.web.server` from fork root | `evidence/files/web-qa-*` |
+| L2 interaction | `loomq/web/` | `.\starter_kit\scripts\run_web.ps1 -Port 8765` from fork root | `evidence/files/web-qa-*` |
 | L3 | `loomq/hybrid/`, `adapter.compile_hybrid` | `.venv/bin/python evaluator.py --level l3` | `tests/test_hybrid_compiler.py` |
 | Engineering | shared typed IR, independent verifier, pinned SDKs, scripts | `scripts/verify.sh` | `ARCHITECTURE.md` |
 | Custom RISC-V +8 | spec + emulator + encoded E2E | `.venv/bin/python -m unittest starter_kit.tests.test_quantum_riscv_extension -v` | `QUANTUM_RISCV_EXTENSION.md` |
@@ -50,9 +51,9 @@ The **core evaluator does not require** `qpanda3-runtime` / `pyqpanda3`. Those a
 
 ## Three L2 UX tasks
 
-1. `我完全不懂量子，带我完成一个最简单的纠缠实验。` — observe a verified circuit, real selected SDK result, plain-language counts explanation, and boundary.
-2. `我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。保持原意并修好。` — observe one bounded correction attempt and only verified QASM reaching execution.
-3. `我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？` — observe canonical IDs selected from the organizer capability table.
+1. `帮我生成一个 GHZ 态并测量` — ask the Agent to write a circuit and explain its result.
+2. `这段 Bell 电路写错了，帮我修好` — observe one bounded correction attempt and only verified QASM reaching execution.
+3. `我有一个 15 比特任务，不想排队，应该选哪个后端？` — ask for a capability-based backend recommendation.
 
 Formal judging injects `LOOMQ_LLM_*` server-side and calls `adapter.agent_chat()` directly. The browser never accepts or stores model keys. The first Bell experiment works without an LLM.
 
@@ -61,7 +62,7 @@ Formal judging injects `LOOMQ_LLM_*` server-side and calls `adapter.agent_chat()
 ```powershell
 .\starter_kit\scripts\setup.ps1
 .\starter_kit\scripts\verify.ps1
-.\.venv\Scripts\python.exe -m starter_kit.loomq.web.server
+.\starter_kit\scripts\run_web.ps1 -Port 8765
 ```
 
 Open `http://127.0.0.1:8765/`. Evidence is under `starter_kit/evidence/`; architecture boundaries are in `ARCHITECTURE.md`. Simulator results are never described as real-QPU evidence.

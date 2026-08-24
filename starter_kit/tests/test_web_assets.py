@@ -198,7 +198,7 @@ class WebAssetContractTests(unittest.TestCase):
             self.assertIn(required, script)
         self.assertTrue(audit.hrefs.issubset(audit.ids), sorted(audit.hrefs - audit.ids))
         user_guide = (STATIC.parents[2] / "USER_GUIDE.md").read_text(encoding="utf-8")
-        self.assertIn("-m starter_kit.loomq.web.server --host 127.0.0.1 --port 8765", user_guide)
+        self.assertIn(".\\starter_kit\\scripts\\run_web.ps1 -Port 8765", user_guide)
         self.assertNotIn("npm run dev", user_guide)
 
     def test_css_has_v7_tokens_responsive_motion_and_touch_guardrails(self):
@@ -333,7 +333,7 @@ class WebAssetContractTests(unittest.TestCase):
             '这种准备方式会得到一种均匀叠加状态。',
             '每次测量仍然只留下一个结果。',
             'id="model-disclosure"',
-            '如何连接自己的模型？',
+            '进阶功能：让 LoomQ 理解你自己的问题（可选）',
             'LOOMQ_LLM_BASE_URL',
             'LOOMQ_LLM_API_KEY',
             'LOOMQ_LLM_MODEL',
@@ -454,6 +454,60 @@ class WebAssetContractTests(unittest.TestCase):
             self.assertIn(value, markup)
         for value in ("Czz = 0.99955", "Cxx = 0.99956", "Cyy = -0.99865"):
             self.assertIn(value, script)
+
+    def test_v721_teaching_and_runtime_hooks_are_present(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        script = self.paths["js"].read_text(encoding="utf-8")
+        css = self.paths["css"].read_text(encoding="utf-8")
+        for required in (
+            'id="h-lab"',
+            'id="cnot-rule-result"',
+            'id="bell-shot-lab"',
+            'class="cnot-rule-choice"',
+            'data-ideal-local="true"',
+            "控制位是 0：目标位不变。",
+            "控制位是 1：目标位翻转。",
+            "在 Z 基测量理想 Bell Φ+ 态时，只会得到 00 或 11，各约 50%。",
+        ):
+            self.assertIn(required, markup)
+        for required in (
+            "initHInteraction",
+            "initCnotInteraction",
+            "initBellShotAccumulator",
+            "groupCircuitColumns",
+            "backend_unavailable",
+        ):
+            self.assertIn(required, script)
+        for required in (".h-lab", ".tutorial-card > .h-lab", ".cnot-rule-choice", ".bell-shot-lab", ".measurement-glyph"):
+            self.assertIn(required, css)
+
+    def test_v722_judge_aligned_beginner_ux_hooks_are_present(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        script = self.paths["js"].read_text(encoding="utf-8")
+        css = self.paths["css"].read_text(encoding="utf-8")
+        for required in (
+            'id="hero-beginner-path"',
+            'id="hero-agent-path"',
+            'id="outcome-first"',
+            'id="agent-entry"',
+            'id="circuit-inspect"',
+            'class="agent-prompt-card"',
+            "不懂量子也可以。先跑一次，再看发生了什么。",
+            "现在，把你的问题说成人话就行。",
+            "帮我生成一个 GHZ 态并测量",
+            "这段 Bell 电路写错了，帮我修好",
+            "我有一个 15 比特任务，不想排队，应该选哪个后端？",
+            "同一类电路也已经交给了真实量子机器",
+        ):
+            self.assertIn(required, markup)
+        for required in (
+            "initCircuitInspect",
+            "initAgentPromptCards",
+            "agentPromptCards",
+        ):
+            self.assertIn(required, script)
+        for required in (".outcome-first", ".agent-entry", ".agent-prompt-card", ".circuit-inspect", ".bell-lane { position: relative; }"):
+            self.assertIn(required, css)
 
     def test_server_module_help_starts_without_runtime_warning(self):
         repository_root = Path(__file__).resolve().parents[2]

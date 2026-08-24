@@ -98,12 +98,12 @@ shots：N/A — SpinQ NMR task page and export expose ensemble projection probab
 请填写：
 
 ```text
-启动界面或 CLI 的命令：在 fork 根目录运行 `.venv/bin/python -m starter_kit.loomq.web.server`（Windows 为 `.\.venv\Scripts\python.exe -m starter_kit.loomq.web.server`）
+启动界面或 CLI 的命令：在 fork 根目录运行 `.\starter_kit\scripts\run_web.ps1 -Port 8765`（启动器会检查 `.venv`、Python 3.10 与 `spinqit==0.2.4`）
 测试入口或页面地址：`http://127.0.0.1:8765/`
 用于交互体验评测的 3 个用户任务：
-1. `我完全不懂量子，带我完成一个最简单的纠缠实验。`
-2. `我想制备 Bell 态，但这段代码有错：H q[0]; CX q[0] q[1]。保持原意并修好。`
-3. `我要运行一个 15 比特电路，不想排队、不想付费也不想注册，应该选哪个后端？`
+1. `帮我生成一个 GHZ 态并测量`
+2. `这段 Bell 电路写错了，帮我修好`
+3. `我有一个 15 比特任务，不想排队，应该选哪个后端？`
 截图或演示视频：`evidence/files/v7.2-zero-knowledge-intro-1440.png`、`evidence/files/v7.2-bell-result-openqasm-1440.png`、`evidence/files/v7.2-api-optional-390.png`、`evidence/files/v7.2-mobile-full-390.png`
 ```
 
@@ -123,7 +123,7 @@ Clean V2 是独立的新实验：固定 seed `20260823`，500 个 unique cases�
 干净环境中的构建和启动命令：`README.md` 的“5 分钟启动”和“一条命令验证”；Windows `.\starter_kit\scripts\setup.ps1` 后运行 `.\starter_kit\scripts\verify.ps1`
 架构说明：`ARCHITECTURE.md`；一个 parser/typed IR，三个 emitter 和三个真实 SDK runner，独立 verifier 不冒充 target
 目标用户和使用场景：没有量子背景的人文社科学生、设计师、产品经理、艺术创作者与普通 AI 用户，在五分钟内完成第一次可解释、可验证的量子实验
-完整使用流程：`USER_GUIDE.md`、Web 首页“开始前，先认四件事” → Bell → run、`evidence/files/v7.2-zero-knowledge-intro-1440.png`、`evidence/files/v7.2-bell-result-openqasm-1440.png`、`evidence/files/v7.2-api-optional-390.png`
+完整使用流程：`USER_GUIDE.md`、Web 首页“承诺与入口” → 理想 Bell 结果 → “开始前，先认四件事” → H/CNOT 与整条电路 → 本地 Bell run → 结果/OpenQASM → 归档硬件桥接 → Agent → X/Y/Z/tomography；截图路径仍见 `evidence/files/`
 ```
 
 工作人员会按最终 commit 实际构建和启动，并检查文档与代码是否一致、产品是否真的降低了量子计算的使用门槛。
@@ -143,7 +143,7 @@ Clean V2 是独立的新实验：固定 seed `20260823`，500 个 unique cases�
 请填写已有材料的路径，不要求为评分另写一套文档：
 
 ```text
-零基础首次运行指南：`USER_GUIDE.md` 的“Offline five-minute path”；Web 首页“开始前，先认四件事” → “第一次实验”本地 Bell 入口。第一次 Bell 体验不需要模型 Key。
+零基础首次运行指南：`USER_GUIDE.md` 的“五分钟跑完第一次实验”；Web 首页“承诺与入口” → 理想 Bell 结果 → “开始前，先认四件事” → 本地 Bell 入口。第一次 Bell 体验不需要模型 Key。
 量子概念解释：`USER_GUIDE.md` 的“Three ideas you need”与 Web 的“验证与解释 / 这证明了什么”
 结果可视化：`loomq/web/static/` 中的电路 rails、counts bars 及并列表格；截图见 `evidence/files/`
 错误恢复或无障碍引导：`loomq/web/server.py` 的结构化恢复错误；HTML labels/live region/skip link；键盘焦点进入结果区；reduced-motion 与移动单列 CSS

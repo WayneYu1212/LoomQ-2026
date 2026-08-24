@@ -22,7 +22,10 @@ else:
 
 def run_braket(circuit: Circuit, shots: int) -> dict[str, object]:
     if _IMPORT_ERROR is not None:
-        raise RuntimeError("Amazon Braket SDK is unavailable; run starter_kit/scripts/setup") from _IMPORT_ERROR
+        raise RuntimeError(
+            "Amazon Braket SDK is unavailable. Run .\\starter_kit\\scripts\\setup.ps1 in this repository, "
+            "then launch with .\\starter_kit\\scripts\\run_web.ps1."
+        ) from _IMPORT_ERROR
     source = emit_braket(circuit)
     executable_source = source.replace('include "stdgates.inc";\n', "", 1)
     task = LocalSimulator().run(Program(source=executable_source), shots=shots)

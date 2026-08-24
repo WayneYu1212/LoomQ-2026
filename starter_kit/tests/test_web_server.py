@@ -65,6 +65,7 @@ class LoomQHTTPServerTests(unittest.TestCase):
                 "version": "0.2.0",
                 "llm_configured": False,
                 "configuration_source": "environment",
+                "backends": web_server.backend_availability(),
             },
         )
 

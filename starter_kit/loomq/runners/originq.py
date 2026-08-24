@@ -23,7 +23,10 @@ else:
 
 def run_originq(circuit: Circuit, shots: int) -> dict[str, object]:
     if _IMPORT_ERROR is not None:
-        raise RuntimeError("pyQPanda is unavailable; run starter_kit/scripts/setup") from _IMPORT_ERROR
+        raise RuntimeError(
+            "pyQPanda is unavailable. Run .\\starter_kit\\scripts\\setup.ps1 in this repository, "
+            "then launch with .\\starter_kit\\scripts\\run_web.ps1."
+        ) from _IMPORT_ERROR
     source = emit_originq(circuit)
     machine = pq.CPUQVM()
     machine.init_qvm()
