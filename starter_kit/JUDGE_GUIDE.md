@@ -16,7 +16,7 @@
 | L3 hybrid compiler | Hybrid-QASM 经典控制与量子操作编译为 stock RISC-V，并保留量子操作顺序 | `loomq/hybrid/`、官方与本地 L3 tests |
 | Real hardware +10 | 两个 canonical 平台 SpinQ + OriginQ；job ID、实际 QASM、raw export、metadata、截图可追溯 | `evidence/HARDWARE_EVIDENCE_SUMMARY.md`、`evidence/files/` |
 | Custom quantum RISC-V +8 | `custom-0` 编码、decoder/emulator、端到端测试 | `QUANTUM_RISCV_EXTENSION.md`、`tests/test_quantum_riscv_extension.py` |
-| Newcomer +4 | 真实外部新手数据尚未补齐；不能用 synthetic walkthrough 填数字 | `NOVICE_BLIND_TEST.md` = `WAIT_FOR_HUMAN_FINAL_REVIEW`；`evidence/SYNTHETIC_COGNITIVE_WALKTHROUGH.md` 仅供回归检测 |
+| Newcomer +4 | Canonical human evidence: two independent low-background sessions; final first-time mobile participant completed Bell with some hesitation; small-N qualitative only | `evidence/NOVICE_BLIND_TEST.md`; `evidence/SYNTHETIC_COGNITIVE_WALKTHROUGH.md` remains non-human regression evidence |
 | Engineering / reproducibility | 新 clone、新环境从 candidate source 构建并跑核心 suite | `evidence/CLEAN_ROOM_REPRODUCTION.md`、`ARCHITECTURE.md` |
 | Scientific honesty | Z-basis correlation 不冒充 entanglement proof；tomography、density matrix、fidelity、PPT 的结论范围写清 | `evidence/SCIENTIFIC_CLAIMS_AUDIT.md` |
 | Security | 浏览器无硬编码 key；LLM 只读 server-side `LOOMQ_LLM_*`；current tree、staged diff、history 和路径 sweep | `evidence/SECURITY_SWEEP.md` |

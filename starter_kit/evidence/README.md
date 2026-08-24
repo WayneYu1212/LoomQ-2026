@@ -144,6 +144,7 @@ Clean V2 是独立的新实验：固定 seed `20260823`，500 个 unique cases�
 请填写已有材料的路径，不要求为评分另写一套文档：
 
 ```text
+真人新手证据（canonical human evidence）：`evidence/NOVICE_BLIND_TEST.md`。这是 small-N qualitative evidence；synthetic walkthrough 不计作人类用户证据。
 零基础首次运行指南：`USER_GUIDE.md` 的“五分钟跑完第一次实验”；Web 首页“承诺与入口” → 理想 Bell 结果 → “开始前，先认四件事” → 本地 Bell 入口。第一次 Bell 体验不需要模型 Key。
 量子概念解释：`USER_GUIDE.md` 的“Three ideas you need”与 Web 的“验证与解释 / 这证明了什么”
 结果可视化：`loomq/web/static/` 中的电路 rails、counts bars 及并列表格；截图见 `evidence/files/`
