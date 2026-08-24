@@ -5,10 +5,11 @@
 ## Candidate identity
 
 - Base UX candidate: `98d2ce03c927fab57ec12f7901652880c33afa2a`.
-- Current candidate SHA: fill after the final local commit.
+- Current candidate SHA: filled after the final local commit below.
 - Previous accepted fallback: Issue `#119`, SHA `ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5`.
 - Required external actions: none performed. No push and no new Issue.
 - Theoretical maximum `112` is not an awarded score.
+- Final product Demo: `evidence/files/loomq-final-demo.mp4` — 8,817,627 bytes; SHA-256 `b4efb73bedeba32766e7a4a62d3149a6790352e038738a322efd08587d9d4ab2`; byte-identical to the user-provided reviewed file. No original 200+ MB recording is included.
 
 ## P0 backend merge
 
@@ -40,27 +41,29 @@ Retained failures in the 30-case smoke are evidence, not discarded noise:
 
 - Starter suite: 137/137.
 - Organizer suite: 26/26.
-- L1 public evaluator: record the final temporary-output result below; do not overwrite canonical evidence.
-- Public L2 fake protocol test: record the final result below.
-- L3 evaluator and randomized tests: record the final result below.
-- RISC-V tests: record the final result below.
-- Web asset/server tests, `node --check`, `compileall`, `pip check`, and `git diff --check`: record the final result below.
-- `mypy`: record `NOT RUN` if the command is unavailable; do not imply it passed.
+- L1 public evaluator: PASS — 6/6 in a fresh temporary output file; canonical evidence was not overwritten.
+- Public L2 fake protocol test: PASS — 1/1, one local HTTP model call.
+- L3 evaluator: PASS — 1/1 public branch.
+- Quantum RISC-V focused/adversarial tests: PASS — 7/7.
+- Web asset/server checks: PASS — local HTTP homepage and `/api/health` returned 200; browser QA covered the final local route at 390, 360, 430, 1366, and 1440 widths, including the English control path.
+- `node --check`: PASS. `compileall`: PASS. `pip check`: PASS. `git diff --check`: PASS.
+- `mypy starter_kit/loomq`: PASS — no issues in 29 source files.
 
 ## Evidence and human-review boundaries
 
 - Canonical SpinQ and OriginQ hardware evidence remains unchanged. No new hardware job was submitted.
 - The five `WK_C180_2` Runtime packages remain supplemental and do not replace canonical OriginQ.
 - Synthetic cognitive walkthrough is AI-assisted regression detection, not external human usability evidence.
-- Demo recording is `NOT RECORDED`; a human reviewer must inspect the actual demo flow if needed.
+- Final product Demo was provided and human-confirmed by the user at the canonical path above; no new recording was made and no duplicate video was added.
 - Science text is a reference-based technical review, not a physical-expert endorsement.
 - Provenance, raw exports, manifests, metadata, checksums, and hashes were not rewritten for tidiness.
 
 ## Final sweeps
 
-- `SECURITY_SWEEP.md`: record current-tree, staged-diff, history, static-asset, storage, and personal-path scan results without printing secrets.
-- `SCIENTIFIC_CLAIMS_AUDIT.md`: record the final UX wording diff and claim boundaries.
-- `CLEAN_ROOM_REPRODUCTION.md`: record a Docker `--no-cache` run or a fresh Python 3.10 environment; the development `.venv` does not count.
+- `SECURITY_SWEEP.md`: PASS for current tree, staged diff, history, static assets, storage-source boundary, and personal-path scan; no secret values were printed.
+- `SCIENTIFIC_CLAIMS_AUDIT.md`: PASS as a reference-based final UX wording diff; it is not a physical-expert endorsement.
+- `CLEAN_ROOM_REPRODUCTION.md`: PASS in a fresh no-hardlinks clone and new Python 3.10.11 venv; Docker was unavailable and the development `.venv` did not count.
+- `prepare_submission.py --team-id WayneYu1212`: readiness is checked after the final local commit; the no-push freeze means remote submission remains intentionally blocked.
 
 ## Human handoff
 
