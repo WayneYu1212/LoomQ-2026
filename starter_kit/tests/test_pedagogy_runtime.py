@@ -144,22 +144,25 @@ class JudgeAlignedBeginnerUxTests(unittest.TestCase):
 
 
 class HumanAcceptanceUxTests(unittest.TestCase):
-    def test_v723_hero_prioritizes_result_and_names_each_next_action(self):
+    def test_v724_hero_restores_result_first_entry_and_names_each_next_action(self):
         markup = (STATIC / "index.html").read_text(encoding="utf-8")
+        script = (STATIC / "app.js").read_text(encoding="utf-8")
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
         compact = "".join(markup.split())
         for required in (
             'id="hero-see-result"',
             'class="hero-action hero-action--primary"',
-            "为什么反复运行同一份电路，结果会集中在 00 和 11？",
-            "先看结果 ↓",
             "先看结果，再一步步看它是怎么发生的。",
             "看懂以后，你也可以直接把自己的问题交给 LoomQ。",
             "跟着做一次完整实验 →",
             "已经懂基础？直接问 LoomQ →",
         ):
             self.assertIn("".join(required.split()), compact)
+        self.assertIn("initV724Hero", script)
+        self.assertIn("先看见一个结果，再走进量子世界", script)
+        self.assertIn("先看 Bell 结果", script)
+        self.assertIn("hero-result-preview", script + css)
         self.assertLess(markup.index('id="hero-see-result"'), markup.index('id="hero-beginner-path"'))
-        self.assertNotIn("先看 Bell 结果", markup)
         self.assertNotIn("带我完成第一次实验", markup)
         self.assertNotIn("我有自己的问题", markup)
 
@@ -227,6 +230,36 @@ class HumanAcceptanceUxTests(unittest.TestCase):
         ):
             self.assertIn(required, markup + script + css)
         self.assertNotIn("animation-iteration-count: infinite", css)
+
+    def test_v724_scroll_progress_ends_before_sticky_stage_releases(self):
+        script = (STATIC / "app.js").read_text(encoding="utf-8")
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("tutorial-story-frame", script)
+        self.assertIn("stickyStart", script)
+        self.assertIn("stickyEnd", script)
+        self.assertIn("stageDocumentTop", script)
+        self.assertIn("frameDocumentBottom", script)
+        self.assertIn("tutorialProgress(section)", script)
+        self.assertIn(".tutorial-story-frame", css)
+        self.assertNotIn("section.offsetHeight - window.innerHeight + stickyTop", script)
+
+    def test_v724_beginner_copy_and_circuit_feedback_are_plain_and_targeted(self):
+        script = (STATIC / "app.js").read_text(encoding="utf-8")
+        css = (STATIC / "styles.css").read_text(encoding="utf-8")
+        for required in (
+            "先从 |0⟩ 出发。",
+            "现在立刻测量，结果会是 0。",
+            "接着加入 H。",
+            "接着加入 H。先看它带来的变化。",
+            "先别急着记定义，先看它带来的变化。",
+            "第一次先用现成的 Bell 例子就行，不用配 API Key。",
+            "想让 LoomQ 帮你生成、修改或解释自己的电路时，再连接模型。",
+            "滚到底时会接近各一半。",
+        ):
+            self.assertIn(required, script)
+        self.assertIn(".outcome-first-stat--00 .outcome-decoration--smile", css)
+        self.assertIn(".outcome-first-stat--11:hover strong", css)
+        self.assertIn("--circuit-stroke: 2px", css)
 
 
 class BackendAvailabilityAndLauncherTests(unittest.TestCase):

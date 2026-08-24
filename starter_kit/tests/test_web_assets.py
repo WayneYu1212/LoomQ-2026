@@ -190,7 +190,7 @@ class WebAssetContractTests(unittest.TestCase):
             "science-boundary-disclosure",
             "scrollIntoView",
             "H 改变了状态，重复测量显出了分布。",
-            "加入 CNOT：第一个是控制位，第二个是目标位。",
+            "加入 CNOT：q0 控制 q1。",
             "理想 Bell 电路最后主要留下 00 和 11，各约一半。",
             "每个测量方向都只告诉我们一部分信息。",
             "PPT 纠缠检验",

@@ -463,6 +463,52 @@
     }
   }
 
+  function initV724Copy() {
+    var qubitOpenerCue = document.querySelector('#qubit .opener-cue span');
+    if (qubitOpenerCue) setBilingualText(qubitOpenerCue, '↓ 接着加入 H，看看状态怎么变', '↓ Add H next and watch the state change');
+    var hVisualCopy = document.querySelector('#qubit .qubit-visual > p');
+    if (hVisualCopy) setBilingualText(hVisualCopy, '接着加入 H。先看它带来的变化。', 'Next, add H. Watch the change it brings.');
+    var qubitStart = document.querySelector('#qubit .tutorial-body:not(.tutorial-body--state)');
+    if (qubitStart) {
+      qubitStart.classList.add('v71-copy');
+      setBilingualText(qubitStart, '先从 |0⟩ 出发。\n现在立刻测量，结果会是 0。', 'Start with |0⟩.\nMeasure it now, and the result is 0.');
+    }
+    var qubitH = document.querySelector('#qubit .tutorial-body--definition');
+    if (qubitH) {
+      qubitH.classList.add('v71-copy');
+      setBilingualText(qubitH, '接着加入 H。\n先别急着记定义，先看它带来的变化。\n重复测量以后，0 和 1 都会出现。', 'Next, add H.\nDo not worry about the definition yet; watch the change first.\nAfter repeated measurements, both 0 and 1 appear.');
+    }
+    if (qubitStoryLine) setBilingualText(qubitStoryLine, '现在，测量会得到 0。', 'A measurement now returns 0.');
+    var qubitAnimationNote = document.querySelector('#qubit .animation-note');
+    if (qubitAnimationNote) setBilingualText(qubitAnimationNote, '先看变化，滚到底时会接近各一半。', 'Watch the change; by the end, they approach half each.');
+
+    var bellDefinition = document.querySelector('#bell .cnot-definition');
+    if (bellDefinition) {
+      bellDefinition.classList.add('v71-copy');
+      setBilingualText(bellDefinition, 'CNOT 先记一条规则：控制位为 0，目标位不变；控制位为 1，目标位翻转。', 'Start with one CNOT rule: control 0 leaves the target unchanged; control 1 flips it.');
+    }
+    var bellAnimationNote = document.querySelector('#bell .animation-note');
+    if (bellAnimationNote) setBilingualText(bellAnimationNote, '继续向下，00 和 11 会各接近一半。', 'Keep going; 00 and 11 approach half each.');
+
+    var quantumHelp = document.querySelector('#onboarding-quantum-computing-help');
+    if (quantumHelp) setBilingualText(quantumHelp.querySelector('p'), '这页只用一个最小 Bell 实验，带你走过准备、操作和测量。', 'This page follows one small Bell experiment through preparation, operations, and measurement.');
+
+    var modelBody = document.querySelector('.model-disclosure-body');
+    if (modelBody) {
+      var modelParagraphs = modelBody.querySelectorAll('p');
+      if (modelParagraphs.length > 0) setBilingualText(modelParagraphs[0], '第一次先用现成的 Bell 例子就行，不用配 API Key。', 'Start with the built-in Bell example; no API key is needed.');
+      var optionalExplanation = modelBody.querySelector('.model-optional-explanation');
+      if (optionalExplanation) setBilingualText(optionalExplanation, '想让 LoomQ 帮你生成、修改或解释自己的电路时，再连接模型。', 'Connect a model when you want LoomQ to generate, modify, or explain your own circuit.');
+      var evaluatorNote = modelBody.querySelector('.model-evaluator-note');
+      if (evaluatorNote) setBilingualText(evaluatorNote, '需要处理自己的问题时，再连接模型；现成 Bell 例子不受影响。', 'Connect a model when you want to handle your own question; the built-in Bell example is unaffected.');
+    }
+    if (formStatus) setBilingualText(formStatus, '第一次先用现成的 Bell 例子就行，不用配 API Key。', 'Start with the built-in Bell example; no API key is needed.');
+    var apiOptionalLead = document.querySelector('.api-optional-lead span[data-zh]');
+    if (apiOptionalLead) setBilingualText(apiOptionalLead, '第一次先用现成的 Bell 例子就行，不用配 API Key。', 'Start with the built-in Bell example; no API key is needed.');
+    var agentCapabilityNote = document.querySelector('.agent-capability-note');
+    if (agentCapabilityNote) setBilingualText(agentCapabilityNote, '想让 LoomQ 帮你生成、修改或解释自己的电路时，再连接模型。', 'Connect a model when you want LoomQ to generate, modify, or explain your own circuit.');
+  }
+
   function initAnchorFocus() {
     [].slice.call(document.querySelectorAll('a[href^="#"]')).forEach(function (link) {
       link.addEventListener('click', function (event) {
@@ -645,6 +691,53 @@
     });
   }
 
+  function initV724Hero() {
+    var title = document.querySelector('#page-title');
+    var headline = title ? title.querySelector('.hero-question-headline') : null;
+    var strokeText = title ? title.querySelector('[data-stroke-text]') : null;
+    if (title && headline) {
+      title.classList.remove('hero-title--question');
+      title.classList.add('hero-title--restored');
+      setBilingualText(headline, '先看见一个结果，再走进量子世界', 'See a result first, then enter the quantum world');
+    }
+    if (strokeText) {
+      strokeText.dataset.ariaLabelZh = '先看见一个结果，再走进量子世界';
+      strokeText.dataset.ariaLabelEn = 'See a result first, then enter the quantum world';
+      strokeText.setAttribute('aria-label', pick(strokeText.dataset.ariaLabelZh, strokeText.dataset.ariaLabelEn));
+    }
+
+    var primary = document.querySelector('#hero-see-result');
+    if (primary) {
+      var primaryLabel = primary.querySelector('[data-zh][data-en]');
+      setBilingualText(primaryLabel, '先看 Bell 结果', 'See the Bell result');
+      primary.setAttribute('href', '#outcome-first');
+    }
+
+    var heroContent = document.querySelector('.hero-content');
+    if (!heroContent || heroContent.querySelector('.hero-result-preview')) return;
+    var preview = makeEl('a', 'hero-result-preview');
+    preview.setAttribute('href', '#outcome-first');
+    preview.dataset.ariaLabelZh = '先看 Bell 结果：00 和 11 各约一半';
+    preview.dataset.ariaLabelEn = 'See the Bell result: about half 00 and half 11';
+    preview.setAttribute('aria-label', preview.dataset.ariaLabelZh);
+    preview.appendChild(makeBilingualNode('span', 'hero-result-preview__eyebrow', '先看结果', 'See the outcome'));
+
+    var rows = makeEl('span', 'hero-result-preview__rows');
+    [['00', '约一半', 'About half'], ['11', '约一半', 'About half']].forEach(function (item) {
+      var row = makeEl('span', 'hero-result-preview__row');
+      row.appendChild(makeEl('strong', 'hero-result-preview__token', item[0]));
+      var track = makeEl('span', 'hero-result-preview__track');
+      var fill = makeEl('i', 'hero-result-preview__fill');
+      track.appendChild(fill);
+      row.appendChild(track);
+      row.appendChild(makeBilingualNode('span', 'hero-result-preview__share', item[1], item[2]));
+      rows.appendChild(row);
+    });
+    preview.appendChild(rows);
+    preview.appendChild(makeBilingualNode('span', 'hero-result-preview__note', '理想 Bell Φ+：00 和 11 各约一半。', 'Ideal Bell Φ+: about half 00 and 11.'));
+    heroContent.insertBefore(preview, heroContent.querySelector('.hero-intro'));
+  }
+
   function initHInteraction() {
     if (!hSingleRun || !hShotsRun) return;
     var zeroCount = 0;
@@ -788,7 +881,8 @@
     [].slice.call(document.querySelectorAll('[data-stroke-lang]')).forEach(function (group) {
       group.toggleAttribute('hidden', group.dataset.strokeLang !== currentLanguage);
     });
-    document.querySelector('[data-stroke-text]').setAttribute('aria-label', pick('为什么反复运行同一份电路，结果会集中在 00 和 11？', 'Why do repeated runs of the same circuit concentrate on 00 and 11?'));
+    var localizedStrokeText = document.querySelector('[data-stroke-text]');
+    if (localizedStrokeText) localizedStrokeText.setAttribute('aria-label', pick('先看见一个结果，再走进量子世界', 'See a result first, then enter the quantum world'));
     languageToggle.setAttribute('aria-pressed', currentLanguage === 'en' ? 'true' : 'false');
     languageToggle.setAttribute('aria-label', pick('切换到英文', 'Switch to Chinese'));
     document.querySelector('[data-language-label]').textContent = '中 / EN';
@@ -921,10 +1015,25 @@
   }
 
   function tutorialProgress(section) {
-    var rect = section.getBoundingClientRect();
-    var stickyTop = window.innerWidth <= 767 ? 86 : 96;
-    var travel = Math.max(section.offsetHeight - window.innerHeight + stickyTop, 1);
-    var raw = clamp((stickyTop - rect.top) / travel, 0, 1);
+    var stage = section.querySelector('.tutorial-story-stage');
+    var frame = section.querySelector('.tutorial-story-frame');
+    if (!stage || !frame) return 0;
+    var stageRect = stage.getBoundingClientRect();
+    var stickyTop = parseFloat(window.getComputedStyle(stage).top);
+    if (!Number.isFinite(stickyTop)) stickyTop = window.innerWidth <= 767 ? 62 : 68;
+    var isSticky = window.getComputedStyle(stage).position === 'sticky';
+    var raw;
+    if (!isSticky) {
+      var naturalTravel = Math.max(stage.offsetHeight - window.innerHeight + stickyTop, 1);
+      raw = clamp((stickyTop - stageRect.top) / naturalTravel, 0, 1);
+    } else {
+      var stageDocumentTop = stageRect.top + window.scrollY;
+      var frameDocumentBottom = frame.getBoundingClientRect().bottom + window.scrollY;
+      var stickyStart = stageDocumentTop - stickyTop;
+      var stickyEnd = frameDocumentBottom - stage.offsetHeight - stickyTop;
+      var stickyTravel = Math.max(stickyEnd - stickyStart, 1);
+      raw = clamp((window.scrollY - stickyStart) / stickyTravel, 0, 1);
+    }
     if (raw < 0.12) return raw * 0.5;
     if (raw < 0.28) return 0.06 + ((raw - 0.12) / 0.16) * 0.26;
     if (raw < 0.38) return 0.32;
@@ -953,8 +1062,8 @@
       qubitStoryLine.textContent = nextQubitStoryState === 'before'
         ? pick('现在，测量会得到 0。', 'A measurement now returns 0.')
         : (nextQubitStoryState === 'gate'
-          ? pick('接下来加入 H：一个作用在单个量子比特上的操作。', 'Next, add H: an operation on one qubit.')
-          : pick('重复很多次后，0 和 1 会各出现大约一半。', 'After many repetitions, 0 and 1 each appear about half the time.'));
+          ? pick('接着加入 H。先看它带来的变化。', 'Next, add H. Watch the change first.')
+          : pick('重复测量以后，0 和 1 会各出现约一半。', 'After repeated measurements, 0 and 1 each appear about half.'));
     }
 
     var bellCard = scrollTutorials[1].querySelector('.tutorial-card');
@@ -980,10 +1089,10 @@
       bellStoryLine.textContent = nextBellStoryState === 'start'
         ? pick('两个量子比特都从 0 开始。', 'Both qubits begin at 0.')
         : (nextBellStoryState === 'h'
-          ? pick('先让第一个量子比特经过 H。', 'First, send the first qubit through H.')
+          ? pick('先让 q0 经过 H。', 'First, send q0 through H.')
           : (nextBellStoryState === 'cnot'
-            ? pick('加入 CNOT：第一个是控制位，第二个是目标位。', 'Add CNOT: the first is the control and the second is the target.')
-            : pick('理想 Bell 电路最后主要留下 00 和 11，各约一半。', 'An ideal Bell circuit mainly leaves 00 and 11, about half each.')));
+            ? pick('加入 CNOT：q0 控制 q1。', 'Add CNOT: q0 controls q1.')
+            : pick('最后主要留下 00 和 11，各约一半。', 'The result settles near half 00 and half 11.')));
     }
   }
 
@@ -1661,6 +1770,8 @@
   initPauliTabs();
   initV71PublicExperience();
   initV72PublicCopy();
+  initV724Hero();
+  initV724Copy();
   initHInteraction();
   initCnotInteraction();
   initOutcomeDelight();
