@@ -54,11 +54,14 @@
   var stepIndex = 0;
   var currentLanguage = 'zh';
   var activePinnedHelp = null;
+  var activeHelpTrigger = null;
+  var helpCloseTimer = 0;
   var predictionChoices = [].slice.call(document.querySelectorAll('.prediction-choice'));
   var predictionFeedback = document.querySelector('#prediction-feedback');
   var pauliTabs = [].slice.call(document.querySelectorAll('.pauli-tab'));
   var pauliPanel = document.querySelector('#pauli-panel');
   var pauliBasisLabel = document.querySelector('.pauli-basis-label');
+  var pauliBasisCopy = null;
   var pauliRelation = document.querySelector('.pauli-relation');
   var pauliValue = document.querySelector('.pauli-value');
   var pauliDescription = document.querySelector('.pauli-description');
@@ -80,6 +83,34 @@
   var qubitStoryState = '';
   var bellStoryState = '';
   var lastExperimentData = null;
+
+  var TERM_HELP_COPY = {
+    'quantum-computing': { labelZh: '量子计算', labelEn: 'quantum computing', zh: '一种利用量子系统来处理信息的计算方式。你现在不需要先学量子力学；这页只带你看懂一个最小实验。', en: 'A way of processing information using quantum systems. You do not need quantum mechanics to follow this page—we are only unpacking one small experiment.' },
+    'bit': { labelZh: 'bit', labelEn: 'bit', zh: '普通计算机最基本的信息单位，通常用 0 或 1 表示。', en: 'The basic unit of information in an ordinary computer, usually represented as 0 or 1.' },
+    'qubit': { labelZh: '量子比特 · qubit', labelEn: 'qubit', zh: '量子计算里的基本信息单位。测量后会读到 0 或 1；测量前，它可以处在不同的量子状态。', en: 'The basic unit of quantum information. A measurement returns 0 or 1, while before measurement the qubit can occupy different quantum states.' },
+    'ket-zero': { labelZh: '|0⟩', labelEn: '|0⟩', zh: '读作 “ket zero”。这里你先把它理解成：这个量子比特从 0 状态开始。', en: 'Read “ket zero.” For this page, just think of it as: this qubit starts in the 0 state.' },
+    'h-gate': { labelZh: 'H · Hadamard', labelEn: 'H · Hadamard', zh: '一种作用在单个量子比特上的量子操作。对这页从 |0⟩ 开始的实验，它会让重复测量时 0 和 1 各出现大约一半。', en: 'A one-qubit operation. In this experiment, starting from |0⟩, it leads to roughly half 0s and half 1s when the same circuit is measured many times.' },
+    'quantum-gate': { labelZh: '量子门', labelEn: 'quantum gate', zh: '对量子比特执行的一种基本操作。你可以先把它理解成“改变量子状态的一步”。', en: 'A basic operation applied to one or more qubits.' },
+    'measurement': { labelZh: '测量 · M', labelEn: 'measurement · M', zh: '把量子状态读成经典结果。在这页里，每次测量最终会得到 0 或 1。', en: 'The step that turns a quantum state into a classical outcome. Here, each measurement returns 0 or 1.' },
+    'cnot': { labelZh: 'CNOT', labelEn: 'CNOT', zh: '一种作用在两个量子比特上的量子门。看最简单的 0 / 1 输入时：控制位为 0，目标位不变；控制位为 1，目标位翻转。', en: 'A two-qubit gate. For simple 0/1 inputs, the target stays unchanged when the control is 0 and flips when the control is 1.' },
+    'control-qubit': { labelZh: '控制位', labelEn: 'control qubit', zh: 'CNOT 里的第一个量子比特。它的 0 / 1 状态决定目标位是否翻转。', en: 'The first qubit in a CNOT. Its 0/1 value determines whether the target flips.' },
+    'target-qubit': { labelZh: '目标位', labelEn: 'target qubit', zh: 'CNOT 里的第二个量子比特。控制位为 1 时，它会翻转；控制位为 0 时保持不变。', en: 'The second qubit in a CNOT. It flips when the control is 1.' },
+    'bell-state': { labelZh: 'Bell 实验 / Bell 态', labelEn: 'Bell experiment / Bell state', zh: '这里是一个两量子比特的 Bell 态入门实验：先用 H 和 CNOT 准备 Bell 态，再观察重复测量得到的结果分布。', en: 'A small two-qubit Bell-state experiment: prepare the state with H and CNOT, then inspect the distribution from repeated measurements.' },
+    'bell-phi-plus': { labelZh: 'Bell Φ+', labelEn: 'Bell Φ+', zh: '一个标准的两量子比特纠缠态。理想情况下，在计算基测量时，结果主要是 00 和 11，而且各约一半。', en: 'A standard two-qubit entangled state. For Bell Φ+, an ideal computational-basis measurement returns mostly 00 and 11, about half each.' },
+    'entanglement': { labelZh: '纠缠', labelEn: 'entanglement', zh: '两个量子比特之间的一种联合量子关系。描述它们时，不能只把两个量子比特各自独立地说完就结束。', en: 'A joint quantum relationship between multiple qubits that cannot be fully described by treating each qubit independently.' },
+    'shots': { labelZh: 'shots · 重复次数', labelEn: 'shots · repetitions', zh: '把同一份电路重复运行并测量很多次。一次测量只给一个结果，所以要靠多次统计才能看出分布。', en: 'Repeated runs of the same circuit. One measurement gives one outcome, so many shots reveal the distribution.' },
+    'backend': { labelZh: '运行后端 · backend', labelEn: 'backend', zh: '真正执行这份量子电路的地方。可以是本地模拟器，也可以是真实量子平台。', en: 'The system that actually executes the circuit—either a local simulator or a quantum hardware service.' },
+    'simulator': { labelZh: '模拟器', labelEn: 'simulator', zh: '用普通计算机模拟量子电路行为的软件。它方便、快速，适合先验证实验流程。', en: 'Software on a classical computer that imitates the behavior of a quantum circuit.' },
+    'quantum-hardware': { labelZh: '真实量子机器', labelEn: 'quantum hardware', zh: '真正的量子硬件设备。它会受到噪声、校准状态和设备条件影响，所以结果通常不会像理想模拟那样完美。', en: 'A physical quantum processor. Real hardware is noisy, so results are usually less ideal than a simulator.' },
+    'openqasm': { labelZh: 'OpenQASM', labelEn: 'OpenQASM', zh: '一种描述量子电路的程序文本。你可以把它理解成“把量子实验写成程序”。', en: 'A text language for describing quantum circuits—roughly, a way to write the experiment as a program.' },
+    'xyz': { labelZh: 'X / Y / Z 测量方向', labelEn: 'X / Y / Z measurement settings', zh: '三种不同的量子测量设置。可以把它理解成：用不同方式观察同一个量子状态，从而获得不同的信息。', en: 'Different ways of measuring the same quantum state. Each setting reveals a different piece of information.' },
+    'correlation': { labelZh: '相关系数 Cxx / Cyy / Czz', labelEn: 'correlation coefficient', zh: '用一个数描述两个量子比特在某个测量方向上的关联趋势。接近 +1 表示高度同向，接近 −1 表示高度反向。', en: 'A number that summarizes how strongly two qubits move together in one measurement setting. Near +1 means strongly aligned; near −1 means strongly anti-aligned.' },
+    'tomography': { labelZh: '量子态层析 · tomography', labelEn: 'tomography', zh: '从多个测量方向收集信息，再把这些结果合起来，重建一个更完整的量子状态描述。', en: 'A method that combines measurements from multiple settings to reconstruct a fuller description of a quantum state.' },
+    'density-matrix': { labelZh: '密度矩阵 · density matrix', labelEn: 'density matrix', zh: '一种记录量子状态统计信息的数学表示。读懂这一页，不需要先会矩阵运算。', en: 'A mathematical representation that stores the statistical information of a quantum state. You do not need matrix algebra to follow this page.' },
+    'fidelity': { labelZh: 'fidelity · 接近程度', labelEn: 'fidelity', zh: '这里可以先读作“接近程度”。数值越接近 1，表示重建状态越接近目标 Bell Φ+。', en: 'A measure of closeness. Here, values nearer 1 mean the reconstructed state is closer to the target Bell Φ+ state.' },
+    'ppt': { labelZh: 'PPT 纠缠判据', labelEn: 'PPT criterion', zh: '一种检查两比特量子态是否纠缠的数学方法。对这里的 2×2 系统，部分转置出现负本征值意味着这个重建状态满足 PPT 纠缠判据。', en: 'A mathematical test for two-qubit entanglement. In this 2×2 case, a negative partial-transpose eigenvalue signals entanglement under the PPT criterion.' },
+    'api-key': { labelZh: 'API Key', labelEn: 'API Key', zh: '连接外部 AI 模型服务时使用的私密凭证。体验现成 Bell 实验不需要它，也不要把自己的 Key 发给别人。', en: 'A private credential used to connect an external AI model service. You do not need one to run the built-in Bell experiment.' }
+  };
 
   var stepData = [
     {
@@ -120,6 +151,32 @@
     if (className) element.className = className;
     setBilingualText(element, zh, en);
     return element;
+  }
+
+  function makeTermHelpNode(termKey, id) {
+    var copy = TERM_HELP_COPY[termKey];
+    if (!copy) return document.createDocumentFragment();
+    var anchor = makeEl('span', 'term-help-anchor');
+    var trigger = makeEl('button', 'term-help-trigger');
+    trigger.type = 'button';
+    trigger.dataset.helpTarget = id;
+    trigger.dataset.termKey = termKey;
+    trigger.dataset.ariaLabelZh = '解释：' + copy.labelZh;
+    trigger.dataset.ariaLabelEn = 'Explain: ' + copy.labelEn;
+    trigger.setAttribute('aria-label', trigger.dataset.ariaLabelZh);
+    trigger.setAttribute('aria-expanded', 'false');
+    var icon = makeEl('span', '', '?');
+    icon.setAttribute('aria-hidden', 'true');
+    trigger.appendChild(icon);
+    var tooltip = makeEl('span', 'term-help');
+    tooltip.id = id;
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.hidden = true;
+    tooltip.appendChild(makeBilingualNode('strong', 'term-help-title', copy.labelZh, copy.labelEn));
+    tooltip.appendChild(makeBilingualNode('span', 'term-help-copy', copy.zh, copy.en));
+    anchor.appendChild(trigger);
+    anchor.appendChild(tooltip);
+    return anchor;
   }
 
   function makeDisclosureSummary(zh, en) {
@@ -218,7 +275,7 @@
       setBilingualText(qubitDeck, '普通电脑把信息写成 0 和 1。\n量子电脑也会读出 0 或 1，但读取之前，量子比特可以处在不同的量子状态。\n我们先从最简单的 |0⟩ 开始。', 'Ordinary computers write information as 0 and 1.\nQuantum computers also read 0 or 1, but before reading, a qubit can be in different quantum states.\nWe will start with the simplest |0⟩.');
     }
     var openerCue = document.querySelector('#qubit .opener-cue span');
-    setBilingualText(openerCue, '↓ 向下滚动，让 H 门经过它', '↓ Scroll down and let the H gate act');
+    setBilingualText(openerCue, '↓ 接下来加入一个叫 H 的操作，先看它怎样改变状态', '↓ Next, add an operation called H and see how it changes the state');
     setBilingualText(document.querySelector('#qubit-science-title'), 'H 改变了状态，重复测量显出了分布。', 'H changes the state; repeated measurements reveal a distribution.');
     var hNarrative = document.querySelector('.h-narrative-copy');
     var hSentences = hNarrative ? hNarrative.querySelectorAll('.sentence-line') : [];
@@ -240,11 +297,13 @@
     var bellDeck = document.querySelector('#bell .section-deck');
     if (bellDeck) {
       bellDeck.classList.add('centered-copy', 'v71-copy');
-      setBilingualText(bellDeck, '两个量子比特都从 0 开始。\n第一个先经过 H，第二步加入 CNOT。', 'Both qubits start at 0.\nThe first passes through H, then CNOT is added.');
+      setBilingualText(bellDeck, '前面我们只看了一个量子比特。\n现在把第二个量子比特也加进来，看看两个量子比特怎样一起变化。', 'So far we have looked at one qubit.\nNow add a second qubit and see how the two change together.');
     }
     var bellHeading = document.querySelector('#bell .section-heading');
     if (bellHeading && !bellHeading.querySelector('.cnot-intro')) {
-      var cnotIntro = makeBilingualNode('p', 'sentence-line cnot-intro', '加入 CNOT：第一个是控制位，第二个是目标位。', 'Add CNOT: the first qubit is the control, and the second is the target.');
+      var cnotIntro = makeEl('p', 'sentence-line cnot-intro');
+      cnotIntro.appendChild(makeBilingualNode('span', '', 'CNOT 是一种作用在两个量子比特上的操作。\n第一个量子比特叫控制位，第二个叫目标位。', 'CNOT is an operation on two qubits.\nThe first qubit is the control; the second is the target.'));
+      cnotIntro.appendChild(makeTermHelpNode('cnot', 'bell-cnot-help'));
       bellHeading.appendChild(cnotIntro);
     }
     var cnotRule = document.querySelector('.cnot-rule');
@@ -281,7 +340,7 @@
     var tomographyDeck = document.querySelector('#tomography .section-deck');
     if (tomographyDeck) {
       tomographyDeck.classList.add('centered-copy', 'v71-copy');
-      setBilingualText(tomographyDeck, '每个测量方向都只告诉我们一部分信息。\n我们重复准备同一状态，再在不同设置下测量。\n把多个方向的结果合起来，就能重建这个量子状态的更完整描述。\n这种方法叫量子态层析，也叫 tomography。', 'Each measurement direction tells us only part of the story.\nWe prepare the same state again, then measure it with different settings.\nCombine several directions to reconstruct a fuller description of the state.\nThis method is called quantum state tomography.');
+      setBilingualText(tomographyDeck, '刚才的测量只从一个方向看这个状态。\n每个测量方向都只告诉我们一部分信息。\n我们重复准备同一状态，再在不同设置下测量。\n把多个方向的结果合起来，就能重建这个量子状态的更完整描述。\n这种方法叫量子态层析，也叫 tomography。', 'The earlier measurement looked at this state from only one direction.\nEach measurement direction tells us only part of the story.\nWe prepare the same state again, then measure it with different settings.\nCombine several directions to reconstruct a fuller description of the state.\nThis method is called quantum state tomography.');
     }
     setBilingualText(document.querySelector('.archive-label'), '归档真机数据 · Origin Wukong 180-2。页面只展示已经保存的结果。', 'Archived hardware data · Origin Wukong 180-2. This page shows saved results only.');
     var tomographyStats = document.querySelectorAll('.tomography-stats > div');
@@ -302,6 +361,77 @@
     }
     var footerQuote = document.querySelector('.footer-inner blockquote');
     if (footerQuote) footerQuote.textContent = '“If you wish to make an apple pie from scratch, you must first invent the universe.”';
+  }
+
+  function initV72PublicCopy() {
+    var evidenceDeck = document.querySelector('#evidence .section-deck');
+    if (evidenceDeck) setBilingualText(evidenceDeck, '前面你亲手运行的是本地模拟。\nLoomQ 也保存了真实量子平台上的运行记录。\n这里不要求你读懂全部原始文件，我们只把最重要的信息讲给你看。', 'You just ran a local simulation.\nLoomQ also keeps run records from real quantum platforms.\nYou do not need to read every raw file here; we keep the most important information in view.');
+    var hardwareSummary = null;
+    var evidenceParagraphs = document.querySelector('#evidence') ? document.querySelector('#evidence').querySelectorAll('p') : [];
+    [].slice.call(evidenceParagraphs).some(function (paragraph) {
+      if (!paragraph.classList.contains('hardware-summary')) return false;
+      hardwareSummary = paragraph;
+      return true;
+    });
+    if (hardwareSummary) setBilingualText(hardwareSummary, 'LoomQ 也保存了真实量子平台上的运行记录。这里不要求你读懂全部原始文件，我们只把最重要的信息讲给你看。', 'LoomQ also keeps run records from real quantum platforms. You do not need to read every raw file here; we keep the most important information in view.');
+    var hVisualCopy = document.querySelector('#qubit .qubit-visual > p');
+    if (hVisualCopy) setBilingualText(hVisualCopy, '接下来加入一个叫 H 的操作。它作用在一个量子比特上。先看它造成的变化。', 'Next, add an operation called H. It acts on one qubit. First, look at the change it causes.');
+    var qubitTutorialBody = document.querySelector('#qubit .tutorial-body:not(.tutorial-body--state)');
+    if (qubitTutorialBody) setBilingualText(qubitTutorialBody, '我们先让一个量子比特从 |0⟩ 开始。|0⟩ 可以先理解成：这个量子比特从 0 状态出发。如果现在立刻测量，结果会是 0。', 'We start one qubit in |0⟩. For now, understand |0⟩ as this qubit starting from the 0 state. If we measure it immediately, the result is 0.');
+    var modelLabel = document.querySelector('#model-disclosure .disclosure-label');
+    var modelBody = document.querySelector('.model-disclosure-body');
+    if (modelLabel) setBilingualText(modelLabel, '进阶功能：让 LoomQ 理解你自己的问题（可选）', 'Advanced: let LoomQ understand your own questions (optional)');
+    if (modelBody) {
+      var modelParagraphs = modelBody.querySelectorAll('p');
+      if (modelParagraphs.length > 0) setBilingualText(modelParagraphs[0], '第一次体验这页，不需要配置这里。', 'For your first experience, you do not need to configure this section.');
+      if (modelParagraphs.length > 1 && !modelBody.querySelector('.model-optional-explanation')) {
+        var optionalExplanation = makeBilingualNode('p', 'model-optional-explanation', '只有当你想让 LoomQ 根据你自己的自然语言问题生成、修复或解释量子电路时，才需要连接一个兼容的 AI 模型服务。', 'Only connect a compatible AI model service when you want LoomQ to generate, repair, or explain a quantum circuit from your own natural-language question.');
+        modelBody.insertBefore(optionalExplanation, modelParagraphs[1]);
+      }
+      var evaluatorNote = modelBody.querySelector('.model-evaluator-note');
+      if (evaluatorNote) setBilingualText(evaluatorNote, '模型配置只影响“自己的问题”功能；现成 Bell 实验不受影响。', 'Model configuration only affects the “your own question” feature; the built-in Bell experiment is unaffected.');
+    }
+    if (formStatus) setBilingualText(formStatus, '第一次体验 LoomQ，不需要 API Key；你可以直接运行现成的 Bell 实验。', 'You do not need an API key for your first LoomQ experience; run the built-in Bell experiment directly.');
+    var bellActionDescription = document.querySelector('.quick-action--primary .quick-action-description');
+    if (bellActionDescription) setBilingualText(bellActionDescription, '直接运行 H + CNOT，不需要连接 AI 模型。', 'Run H + CNOT directly; no AI model connection is needed.');
+
+    var backendHelp = document.querySelector('#backend-help');
+    if (backendHelp) {
+      setBilingualText(backendHelp.querySelector('strong'), '运行后端 · backend', 'backend');
+      setBilingualText(backendHelp.querySelector('p'), TERM_HELP_COPY.backend.zh, TERM_HELP_COPY.backend.en);
+    }
+    var shotsHelp = document.querySelector('#shots-help');
+    if (shotsHelp) {
+      setBilingualText(shotsHelp.querySelector('strong'), TERM_HELP_COPY.shots.labelZh, TERM_HELP_COPY.shots.labelEn);
+      setBilingualText(shotsHelp.querySelector('p'), TERM_HELP_COPY.shots.zh, TERM_HELP_COPY.shots.en);
+    }
+
+    if (pauliBasisLabel && !pauliBasisCopy) {
+      pauliBasisLabel.removeAttribute('data-zh');
+      pauliBasisLabel.removeAttribute('data-en');
+      pauliBasisCopy = makeEl('span', 'pauli-basis-copy');
+      pauliBasisLabel.textContent = '';
+      pauliBasisLabel.appendChild(pauliBasisCopy);
+      pauliBasisLabel.appendChild(makeTermHelpNode('xyz', 'pauli-xyz-help'));
+      var correlationHelp = makeTermHelpNode('correlation', 'pauli-correlation-help');
+      if (pauliValue && pauliValue.parentNode) pauliValue.parentNode.insertBefore(correlationHelp, pauliDescription);
+      renderPauli(currentPauliBasis);
+    }
+
+    var tomographyStats = document.querySelectorAll('.tomography-stats > div');
+    if (tomographyStats.length > 0 && !tomographyStats[0].querySelector('[data-term-key="fidelity"]')) {
+      tomographyStats[0].insertBefore(makeTermHelpNode('fidelity', 'tomography-fidelity-help'), tomographyStats[0].querySelector('strong'));
+    }
+    if (tomographyStats.length > 1 && !tomographyStats[1].querySelector('[data-term-key="ppt"]')) {
+      tomographyStats[1].insertBefore(makeTermHelpNode('ppt', 'tomography-ppt-help'), tomographyStats[1].querySelector('strong'));
+    }
+    var densityHelp = document.querySelector('.density-help');
+    if (densityHelp && !densityHelp.querySelector('[data-term-key="density-matrix"]')) {
+      var densityTerm = makeEl('p', 'density-term-help-line');
+      densityTerm.appendChild(makeBilingualNode('span', '', '密度矩阵 · density matrix', 'density matrix'));
+      densityTerm.appendChild(makeTermHelpNode('density-matrix', 'density-matrix-help'));
+      densityHelp.insertBefore(densityTerm, densityHelp.querySelector('p'));
+    }
   }
 
   function initAnchorFocus() {
@@ -390,7 +520,8 @@
     var copy = pauliPanelData[currentPauliBasis][currentLanguage];
     pauliPanel.dataset.basis = currentPauliBasis;
     pauliPanel.setAttribute('aria-labelledby', 'tab-' + currentPauliBasis);
-    pauliBasisLabel.textContent = copy.basis;
+    if (pauliBasisCopy) pauliBasisCopy.textContent = copy.basis;
+    else pauliBasisLabel.textContent = copy.basis;
     pauliRelation.textContent = copy.relation;
     pauliValue.textContent = copy.value;
     pauliDescription.textContent = copy.description;
@@ -645,39 +776,120 @@
     });
   }
 
-  function hideHelp(trigger) {
-    if (!trigger) return;
-    var target = document.querySelector('#' + trigger.dataset.helpTarget);
-    if (target) target.hidden = true;
-    trigger.setAttribute('aria-expanded', 'false');
-    if (activePinnedHelp === trigger) activePinnedHelp = null;
+  function helpTargetFor(trigger) {
+    return trigger && trigger.dataset.helpTarget ? document.getElementById(trigger.dataset.helpTarget) : null;
   }
 
-  function showHelp(trigger) {
-    var target = document.querySelector('#' + trigger.dataset.helpTarget);
+  function cancelHelpClose() {
+    if (!helpCloseTimer) return;
+    window.clearTimeout(helpCloseTimer);
+    helpCloseTimer = 0;
+  }
+
+  function positionHelp(trigger, target) {
+    if (!trigger || !target || target.hidden) return;
+    var triggerRect = trigger.getBoundingClientRect();
+    var margin = 16;
+    target.style.visibility = 'hidden';
+    target.style.left = margin + 'px';
+    target.style.top = margin + 'px';
+    var targetRect = target.getBoundingClientRect();
+    var left = triggerRect.left + (triggerRect.width / 2) - (targetRect.width / 2);
+    var top = triggerRect.bottom + 10;
+    if (left + targetRect.width > window.innerWidth - margin) left = window.innerWidth - targetRect.width - margin;
+    if (left < margin) left = margin;
+    if (top + targetRect.height > window.innerHeight - margin) top = triggerRect.top - targetRect.height - 10;
+    if (top < margin) top = margin;
+    target.style.left = Math.round(left) + 'px';
+    target.style.top = Math.round(top) + 'px';
+    target.classList.toggle('term-help--above', top < triggerRect.top);
+    target.style.visibility = '';
+  }
+
+  function hideHelp(trigger) {
+    if (!trigger) trigger = activeHelpTrigger || activePinnedHelp;
+    if (!trigger) return;
+    var target = helpTargetFor(trigger);
+    if (target) {
+      target.hidden = true;
+      target.style.left = '';
+      target.style.top = '';
+      target.style.visibility = '';
+    }
+    trigger.setAttribute('aria-expanded', 'false');
+    if (activePinnedHelp === trigger) activePinnedHelp = null;
+    if (activeHelpTrigger === trigger) activeHelpTrigger = null;
+  }
+
+  function scheduleHideHelp(trigger) {
+    if (activePinnedHelp === trigger) return;
+    cancelHelpClose();
+    helpCloseTimer = window.setTimeout(function () {
+      helpCloseTimer = 0;
+      if (activePinnedHelp !== trigger) hideHelp(trigger);
+    }, 90);
+  }
+
+  function showHelp(trigger, pinned) {
+    var target = helpTargetFor(trigger);
     if (!target) return;
+    cancelHelpClose();
+    if (activeHelpTrigger && activeHelpTrigger !== trigger) hideHelp(activeHelpTrigger);
+    if (activePinnedHelp && activePinnedHelp !== trigger) hideHelp(activePinnedHelp);
+    activeHelpTrigger = trigger;
+    if (pinned) activePinnedHelp = trigger;
     target.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
     trigger.setAttribute('aria-controls', target.id);
     trigger.setAttribute('aria-describedby', target.id);
+    window.requestAnimationFrame(function () { positionHelp(trigger, target); });
+  }
+
+  function repairStaticTermHelpMarkup() {
+    var onboardingGrid = document.querySelector('#onboarding .onboarding-grid');
+    var onboardingFooter = onboardingGrid ? onboardingGrid.querySelector('.onboarding-footer-note') : null;
+    if (onboardingGrid && onboardingFooter && onboardingFooter.tagName === 'P') {
+      var footerReplacement = document.createElement('div');
+      [].slice.call(onboardingFooter.attributes).forEach(function (attribute) { footerReplacement.setAttribute(attribute.name, attribute.value); });
+      while (onboardingFooter.firstChild) footerReplacement.appendChild(onboardingFooter.firstChild);
+      onboardingFooter.parentNode.replaceChild(footerReplacement, onboardingFooter);
+      onboardingFooter = footerReplacement;
+    }
+    if (onboardingGrid && onboardingFooter) {
+      [].slice.call(onboardingGrid.children).forEach(function (child) {
+        if (child.classList.contains('term-help-anchor')) onboardingFooter.appendChild(child);
+      });
+    }
+    [].slice.call(document.querySelectorAll('.term-help')).forEach(function (target) {
+      if (target.querySelector('p, .term-help-copy')) return;
+      var anchor = target.parentElement;
+      var owner = anchor;
+      var orphan = owner ? owner.nextElementSibling : null;
+      while (owner && owner.parentElement && (!orphan || !(orphan.tagName === 'P' && orphan.hasAttribute('data-zh')))) {
+        owner = owner.parentElement;
+        orphan = owner.nextElementSibling;
+      }
+      if (!orphan || orphan.tagName !== 'P' || !orphan.hasAttribute('data-zh')) return;
+      target.appendChild(orphan);
+      var emptyParagraph = owner.nextElementSibling;
+      if (emptyParagraph && emptyParagraph.tagName === 'P' && !emptyParagraph.textContent.trim()) emptyParagraph.remove();
+    });
   }
 
   function initTermHelp() {
-    var triggers = [].slice.call(document.querySelectorAll('[data-help-target]'));
+    var triggers = [].slice.call(document.querySelectorAll('.term-help-trigger, .help-button'));
     triggers.forEach(function (trigger) {
-      var target = document.querySelector('#' + trigger.dataset.helpTarget);
-      if (target) {
-        trigger.setAttribute('aria-controls', target.id);
-        trigger.setAttribute('aria-describedby', target.id);
-      }
-      trigger.addEventListener('pointerenter', function () { showHelp(trigger); });
-      trigger.addEventListener('pointerleave', function () {
-        if (activePinnedHelp !== trigger) hideHelp(trigger);
+      var target = helpTargetFor(trigger);
+      if (!target) return;
+      trigger.setAttribute('aria-controls', target.id);
+      trigger.setAttribute('aria-describedby', target.id);
+      trigger.addEventListener('pointerenter', function (event) {
+        if (event.pointerType === 'touch') return;
+        showHelp(trigger, false);
       });
-      trigger.addEventListener('focus', function () { showHelp(trigger); });
-      trigger.addEventListener('blur', function () {
-        if (activePinnedHelp !== trigger) hideHelp(trigger);
-      });
+      trigger.addEventListener('pointerleave', function () { scheduleHideHelp(trigger); });
+      trigger.addEventListener('focus', function () { showHelp(trigger, false); });
+      trigger.addEventListener('blur', function () { scheduleHideHelp(trigger); });
       trigger.addEventListener('click', function (event) {
         event.stopPropagation();
         if (activePinnedHelp === trigger) {
@@ -685,8 +897,7 @@
           return;
         }
         if (activePinnedHelp) hideHelp(activePinnedHelp);
-        activePinnedHelp = trigger;
-        showHelp(trigger);
+        showHelp(trigger, true);
       });
       trigger.addEventListener('keydown', function (event) {
         if (event.key !== 'Escape') return;
@@ -694,18 +905,30 @@
         hideHelp(trigger);
         trigger.focus();
       });
+      target.addEventListener('pointerenter', function (event) {
+        if (event.pointerType !== 'touch') cancelHelpClose();
+      });
+      target.addEventListener('pointerleave', function (event) {
+        if (event.pointerType !== 'touch') scheduleHideHelp(trigger);
+      });
     });
     document.addEventListener('click', function (event) {
-      if (!activePinnedHelp) return;
-      var target = document.querySelector('#' + activePinnedHelp.dataset.helpTarget);
-      if (activePinnedHelp.contains(event.target) || (target && target.contains(event.target))) return;
-      hideHelp(activePinnedHelp);
+      if (!activeHelpTrigger) return;
+      var target = helpTargetFor(activeHelpTrigger);
+      if (activeHelpTrigger.contains(event.target) || (target && target.contains(event.target))) return;
+      hideHelp(activeHelpTrigger);
     });
     document.addEventListener('keydown', function (event) {
-      if (event.key !== 'Escape' || !activePinnedHelp) return;
-      var trigger = activePinnedHelp;
+      if (event.key !== 'Escape' || !activeHelpTrigger) return;
+      var trigger = activeHelpTrigger;
       hideHelp(trigger);
       trigger.focus();
+    });
+    window.addEventListener('scroll', function () {
+      if (activeHelpTrigger) positionHelp(activeHelpTrigger, helpTargetFor(activeHelpTrigger));
+    }, { passive: true });
+    window.addEventListener('resize', function () {
+      if (activeHelpTrigger) positionHelp(activeHelpTrigger, helpTargetFor(activeHelpTrigger));
     });
   }
 
@@ -1024,12 +1247,14 @@
 
   initStepper();
   initSpotlightCards();
-  initTermHelp();
   initLineSidebar();
   initTitleReveals();
   initPrediction();
   initPauliTabs();
   initV71PublicExperience();
+  initV72PublicCopy();
+  repairStaticTermHelpMarkup();
+  initTermHelp();
   initAnchorFocus();
   applyLanguage('zh');
   loadRuntimeStatus();

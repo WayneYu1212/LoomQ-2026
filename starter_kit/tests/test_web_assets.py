@@ -1,4 +1,5 @@
 from html.parser import HTMLParser
+from collections import Counter
 from pathlib import Path
 import re
 import subprocess
@@ -352,6 +353,107 @@ class WebAssetContractTests(unittest.TestCase):
             ".h-narrative-copy .sentence-line",
         ):
             self.assertIn(required, css)
+
+    def test_v72_zero_knowledge_onboarding_and_symbol_guide_contract(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        compact_markup = "".join(markup.split())
+
+        self.assertIn('id="onboarding"', markup)
+        for required in (
+            "开始前，先认四件事",
+            "你不用先学过量子力学",
+            "量子计算也是在处理信息",
+            "量子比特是量子计算里的基本信息单位",
+            "我们只做一个最小实验",
+            "先认识四个符号",
+            "Quantum computing is another way of processing information.",
+            "A qubit is a basic unit of quantum information.",
+        ):
+            self.assertIn("".join(required.split()), compact_markup)
+        for symbol in ("|0⟩", "H", "CNOT", "M"):
+            self.assertIn(symbol, markup)
+        self.assertIn('data-zh="从 0 状态开始"', markup)
+        self.assertIn('data-en="start in the 0 state"', markup)
+
+    def test_v72_term_help_buttons_are_accessible_and_dictionary_is_bilingual(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        script = self.paths["js"].read_text(encoding="utf-8")
+        trigger_matches = re.findall(r"<button\b([^>]*data-help-target=[^>]*data-term-key=[^>]*)>", markup)
+        self.assertGreaterEqual(len(trigger_matches), 12)
+        target_ids = []
+        for attributes in trigger_matches:
+            self.assertRegex(attributes, r'\btype="button"')
+            self.assertRegex(attributes, r'\bclass="[^"]*term-help-trigger')
+            self.assertRegex(attributes, r'\baria-label="[^"]+"')
+            match = re.search(r'data-help-target="([^"]+)"', attributes)
+            self.assertIsNotNone(match)
+            target_ids.append(match.group(1))
+
+        for target_id in target_ids:
+            self.assertRegex(
+                markup,
+                rf'<(?:div|span)\b(?=[^>]*class="[^"]*term-help)(?=[^>]*id="{re.escape(target_id)}")[^>]*>',
+            )
+
+        required_keys = (
+            "qubit", "ket-zero", "h-gate", "cnot", "bell-state", "measurement",
+            "shots", "openqasm", "backend", "tomography", "density-matrix",
+            "fidelity", "ppt", "api-key",
+        )
+        for key in required_keys:
+            self.assertIn("'" + key + "':", script)
+        self.assertIn("TERM_HELP_COPY", script)
+        self.assertIn("zh:", script)
+        self.assertIn("en:", script)
+        self.assertIn("aria-describedby", script)
+        self.assertIn("event.key !== 'Escape'", script)
+
+        ids = re.findall(r'\bid="([A-Za-z][A-Za-z0-9_-]*)"', markup)
+        duplicates = sorted(key for key, count in Counter(ids).items() if count > 1)
+        self.assertEqual(duplicates, [])
+
+    def test_v72_api_is_explicitly_optional_and_disclosures_have_affordances(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        css = self.paths["css"].read_text(encoding="utf-8")
+        script = self.paths["js"].read_text(encoding="utf-8")
+        compact_markup = "".join(markup.split())
+        for required in (
+            "第一次体验 LoomQ，不需要 API Key",
+            "现成的 Bell 实验和本地模拟可以直接运行",
+            "进阶功能：让 LoomQ 理解你自己的问题（可选）",
+            "第一次体验这页，不需要配置这里",
+            "只有当你想让 LoomQ 根据你自己的自然语言问题生成、修复或解释量子电路时",
+            "You do not need an API key to run the built-in Bell experiment",
+        ):
+            self.assertIn("".join(required.split()), compact_markup)
+        self.assertIn("initV72PublicCopy", script)
+        self.assertNotIn("正式评测会注入 LOOMQ_LLM_", markup)
+        summaries = re.findall(r'<summary\b([^>]*)>(.*?)</summary>', markup, flags=re.DOTALL)
+        self.assertGreaterEqual(len(summaries), 5)
+        self.assertGreaterEqual(sum("disclosure-marker" in content for attributes, content in summaries), 3)
+        self.assertIn("experiment-settings > summary::before", css)
+        self.assertIn("density-help > summary::before", css)
+
+    def test_v72_protected_values_and_result_source_contract_remain_exact(self):
+        markup = self.paths["html"].read_text(encoding="utf-8")
+        script = self.paths["js"].read_text(encoding="utf-8")
+        for value in (
+            'data-value="Czz = 0.99955"',
+            'data-value="Cxx = 0.99956"',
+            'data-value="Cyy = -0.99865"',
+            "0.952449",
+            "-0.4561",
+            "已归档真机数据 · Origin Wukong 180-2",
+            "LOOMQ_LLM_BASE_URL",
+            "LOOMQ_LLM_API_KEY",
+            "LOOMQ_LLM_MODEL",
+            "LOOMQ_LLM_TIMEOUT_SECONDS",
+            'class="result-source-grid"',
+            'id="qasm-disclosure"',
+        ):
+            self.assertIn(value, markup)
+        for value in ("Czz = 0.99955", "Cxx = 0.99956", "Cyy = -0.99865"):
+            self.assertIn(value, script)
 
     def test_server_module_help_starts_without_runtime_warning(self):
         repository_root = Path(__file__).resolve().parents[2]
