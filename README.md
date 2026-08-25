@@ -1,3 +1,5 @@
+> **Participant implementation navigation:** [Start here: `starter_kit/JUDGE_GUIDE.md`](starter_kit/JUDGE_GUIDE.md) · [Product README](starter_kit/README.md) · [Evidence](starter_kit/evidence/README.md)
+
 # LoomQ · 量子接入平权计划：赛题发布包
 
 > SheNicest 2026 夏季千人烈变黑客松 · 正式赛题（选手分发版）

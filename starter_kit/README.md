@@ -74,7 +74,7 @@ Python 3.10 是正式基础镜像版本。`spinqit==0.2.4` 只提供 cp310 wheel
 pip install -r starter_kit/requirements-originq-runtime.txt
 ```
 
-只安装 `requirements.txt` 即可得到一个干净的核心环境，能运行全部 L1/L2/L3、SpinQ、Braket 与 RISC-V 测试。接受的 canonical `originq_real.py`（pyqpanda QCloud, chip 72）保持原样未动。
+只安装 `requirements.txt` 即可得到一个干净的核心环境，能运行全部 L1/L2/L3、SpinQ、Braket 与 RISC-V 测试。接受的 canonical `starter_kit/hardware/originq_real.py`（pyqpanda QCloud, chip 72）保持原样未动。
 
 ## 配置真实 L2 模型
 
@@ -216,19 +216,19 @@ docker run --rm loomq-submission
 - 已申报：L1/L2/L3、L1 两平台真机（SpinQ + OriginQ）、L2 交互体验、工程与产品化、自定义量子 RISC-V、新手引导与视觉叙事。
 - 真机证据：`evidence/README.md` 与 `evidence/files/` 中的原始导出、任务截图与哈希；组织方仍可登录平台复核 job ID 的真实性。
 - 参考模拟器最多 16 qubits，用于快速 Agent 自验；三方 SDK 按官方能力表运行更大电路。
-- 当前自动验证使用本地兼容模型端点；只有在提供个人 `LOOMQ_LLM_*` 后才能做真实公网模型 smoke，正式分以组委会环境为准。
+- 内置 verify/public evaluator 是本地 deterministic contract 与 SDK 验证路径（public L2 使用本地 HTTP fake），不等同于 participant-side real-model campaigns。历史 102-case stress 与 Clean V2 500-case 只作为归档 robustness evidence；正式 hidden/private L2 仍由组委会环境评测。
 
 ## 最终提交
 
-当前只保留本地 final candidate，`#119 / ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5` 继续作为 previous accepted fallback。除非获得明确授权，不自动 push、submit 或创建新的 Final Submission Issue。
+Authoritative submission identity and acceptance are determined by the upstream Final Submission Issue; this tracked README does not infer remote acceptance.
 
-在未来获得授权、且最终 clean 并已推送的 commit 上运行：
+对要提交的 clean candidate，在其 `origin` ref 包含该 exact SHA 后运行：
 
 ```bash
 python3 starter_kit/prepare_submission.py --team-id WayneYu1212
 ```
 
-随后用输出的公开 fork URL 与 40 位 SHA 创建上游“LoomQ 最终提交”Issue。只有 `submission:accepted` 标签和归档 SHA-256 回执才构成有效提交；截止为 **2026-08-25 12:00 UTC+8**。
+随后用输出的公开 fork URL 与 40 位 SHA 创建上游 Final Submission Issue。只有 `submission:accepted` 标签和归档 SHA-256 receipt 才构成有效提交；截止时间以组委会发布的 submission contract 为准。
 
 ## Web 交付边界
 

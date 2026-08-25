@@ -27,7 +27,7 @@
 2. 点 **跟着做一次完整实验 →**，看 `|0⟩`、H 的约 50/50 重复测量和 CNOT 控制位/目标位。
 3. 点 **重做刚才的 Bell 实验**，再点 **运行这个实验**（载入后状态文案可能显示 **执行这个实验**），检查真实本地 SDK counts、解释、电路、OpenQASM 与验证结果。
 4. 打开归档 SpinQ / OriginQ 硬件桥接，再看 X/Y/Z 与 tomography 的科学边界。
-5. 点 **已经懂基础？直接问 LoomQ →**，查看生成、修复、后端推荐三个 L2 任务；模型连接是可选的。
+5. 点 **已经懂基础？直接问 LoomQ →**，查看生成、修复、后端推荐三个 L2 任务；首次 Bell 路径无需模型 Key，但这些 L2 交互需要服务端注入 `LOOMQ_LLM_*` 配置。
 
 ## Verification commands
 
@@ -50,4 +50,4 @@ The science section is a reference-based technical review, not a physical-expert
 
 ## Human handoff
 
-No new hardware job, push, or Issue was created by this closeout. Final candidate SHA, remote state, external human usability evidence, device review and any future submission remain human approval gates.
+Submission identity and acceptance are determined by the upstream Final Submission Issue; this guide does not infer remote acceptance or replace organizer review.

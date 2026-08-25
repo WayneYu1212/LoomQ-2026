@@ -5,7 +5,7 @@
 | Area | Target | Status | Evidence boundary |
 |---|---:|---|---|
 | L1 software/semantic | 35 | OBJECTIVELY VERIFIED | Three SDK runners; public and hidden-shape local regression |
-| L1 genuine hardware | 10 | TWO-PLATFORM EVIDENCE READY / ORGANIZER TRACEABILITY REVIEW | **Only the accepted canonical packages** count here: SpinQ `G-260820-0008` and OriginQ `D0C7F...B342` (previous accepted fallback #119), both covered by the canonical validator. The five `WK_C180_2` Runtime packages are supplemental only: not a replacement for canonical OriginQ, not an additional hardware platform, and not relied upon for this +10 ladder. Their independent validator checks job separation, QASM, provider probabilities, SHA-256 and no fabricated timestamps/counts. |
+| L1 genuine hardware | 10 | TWO-PLATFORM EVIDENCE READY / ORGANIZER TRACEABILITY REVIEW | **Only the accepted canonical packages** count here: SpinQ `G-260820-0008` and OriginQ `D0C7F...B342`, both covered by the canonical validator. Earlier accepted submissions are historical context only. The five `WK_C180_2` Runtime packages are supplemental only: not a replacement for canonical OriginQ, not an additional hardware platform, and not relied upon for this +10 ladder. Their independent validator checks job separation, QASM, provider probabilities, SHA-256 and no fabricated timestamps/counts. |
 | L2 objective | 20 | OBJECTIVELY VERIFIED (public contract) + LOCAL REAL-MODEL STRESS | Real HTTP model call in public fake; historical 102-case stress remains in `L2_REAL_MODEL_VALIDATION.md`; formal private semantics remain organizer-scored |
 | L2 final-candidate gate | — | LOCALLY VERIFIED / ORGANIZER-SCORED SEMANTICS REMAIN SEPARATE | P0 backend-34-cloud-sim post-fix: 5/5 (`braket_cloud`); backend-40-real: 5/5 (`originq_wukong`); old 12 unseen paraphrases: 12/12; new cloud-simulator paraphrases: 8/8; balanced 6-case gate: 6/6; full 30-case smoke: 29/30, provider timeout 0, retained semantic failure `backend-9-real`; subsequent diagnostic replay: 3/3 stochastic residual, not a replacement |
 | L2 interaction | 10 | MANUAL REVIEW CLAIMED | Runnable Web, three tasks, screenshots, structured recovery |
@@ -18,7 +18,7 @@
 
 - Software/manual opportunities claimed: `102 / 112` theoretical ceiling before hardware.
 - Two-platform hardware evidence is packaged for the `10`-point ladder: SpinQ `G-260820-0008` and OriginQ `D0C7F...B342`.
-- `112` is the official **theoretical ceiling**, not an awarded score. Previous accepted fallback is Issue **#119** at `ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5`; this local final candidate has no new submission claim. Manual/private judging and organizer hardware traceability review remain organizer-controlled. Organizers determine the awarded score.
+- `112` is the official **theoretical ceiling**, not an awarded score. Earlier accepted submissions are historical context only; authoritative current submission identity and acceptance are determined by the upstream Final Submission Issue. Manual/private judging and organizer hardware traceability review remain organizer-controlled. Organizers determine the awarded score.
 
 Local validation cannot award manual points or prove a remote job exists. Organizers retain final scoring and may log in to verify hardware IDs.
 
