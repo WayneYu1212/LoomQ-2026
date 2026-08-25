@@ -14,7 +14,7 @@
 | L2 retained failures | full 30-case smoke 为 29/30；provider timeout 为 0；唯一 retained failure 为 `backend-9-real` semantic failure。其后 3/3 是独立 diagnostic replay，标记为 stochastic residual，不覆盖原始 29/30，也不改写为 30/30 | `FINAL_RELEASE_CHECKLIST.md`、外部 smoke 输出不作为归档原始证据 |
 | L2 product interaction | Hero → H → CNOT → Bell → 运行 → QASM；首个 Bell 路径无需 API Key | `loomq/web/`、`evidence/WEB_QA.md` |
 | L3 hybrid compiler | Hybrid-QASM 经典控制与量子操作编译为 stock RISC-V，并保留量子操作顺序 | `loomq/hybrid/`、官方与本地 L3 tests |
-| Real hardware +10 | 两个 canonical 平台 SpinQ + OriginQ；job ID、实际 QASM、raw export、metadata、截图可追溯 | `evidence/HARDWARE_EVIDENCE_SUMMARY.md`、`evidence/files/` |
+| Real hardware +10 | 两个 canonical 平台 SpinQ + OriginQ；job ID、circuit / QASM provenance、provider-original raw export、metadata、截图可追溯 | `evidence/HARDWARE_EVIDENCE_SUMMARY.md`、`evidence/files/` |
 | Custom quantum RISC-V +8 | `custom-0` 编码、decoder/emulator、端到端测试 | `QUANTUM_RISCV_EXTENSION.md`、`tests/test_quantum_riscv_extension.py` |
 | Newcomer +4 | Canonical human evidence: two independent low-background sessions; final first-time mobile participant completed Bell with some hesitation; small-N qualitative only | `evidence/NOVICE_BLIND_TEST.md`; `evidence/SYNTHETIC_COGNITIVE_WALKTHROUGH.md` remains non-human regression evidence |
 | Engineering / reproducibility | 新 clone、新环境从 candidate source 构建并跑核心 suite | `evidence/CLEAN_ROOM_REPRODUCTION.md`、`ARCHITECTURE.md` |

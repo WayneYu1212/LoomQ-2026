@@ -74,7 +74,7 @@ Python 3.10 是正式基础镜像版本。`spinqit==0.2.4` 只提供 cp310 wheel
 pip install -r starter_kit/requirements-originq-runtime.txt
 ```
 
-只安装 `requirements.txt` 即可得到一个干净的核心环境，能运行全部 L1/L2/L3、SpinQ、Braket 与 RISC-V 测试。接受的 canonical `starter_kit/hardware/originq_real.py`（pyqpanda QCloud, chip 72）保持原样未动。
+只安装 `requirements.txt` 即可得到一个干净的核心环境，能运行全部 L1/L2/L3、SpinQ、Braket 与 RISC-V 测试。canonical `starter_kit/hardware/originq_real.py`（pyqpanda QCloud, chip 72）保持原样未动。
 
 ## 配置真实 L2 模型
 

@@ -16,14 +16,36 @@
 
 ## L1 真机
 
+### Canonical L1 scoring summary
+
+L1 hardware scoring relies on exactly two canonical, scoreable platform families:
+
+1. **Origin Quantum Cloud**
+   - Canonical job: `D0C7F490B43D9B04FDF19ABF3DB8B342`
+   - Provider circuit provenance: `evidence/files/originq-hardware-circuit-logical.svg`, `evidence/files/originq-hardware-circuit-physical.svg`
+   - Readable/reproducible QASM: `evidence/files/originq-hardware-bell.qasm`
+   - The QASM is faithfully reconstructed from the provider-exported logical SVG. It is not claimed as provider-exported raw QASM bytes.
+   - Provider-original result: `evidence/files/originq-hardware-result.raw.csv`
+   - Readable JSON transcription/view: `evidence/files/originq-hardware-result.raw.json`
+
+2. **SpinQ Cloud**
+   - Canonical job: `G-260820-0008`
+   - Provider-exported raw QASM bytes: `evidence/files/spinq-hardware-bell.raw.qasm.gz`
+   - Readable semantic QASM copy: `evidence/files/spinq-hardware-bell.qasm`
+   - Provider-original result: `evidence/files/spinq-hardware-result.raw.msgpack`
+   - Decoded JSON view: `evidence/files/spinq-hardware-result.raw.json`
+
+The later `originq_runtime_*` packages are supplemental engineering/scientific evidence. They do not add another hardware platform and do not replace the two canonical packages.
+
 平台名称：Origin Quantum Cloud
 设备：Origin Wukong 180-2
 平台 job ID：D0C7F490B43D9B04FDF19ABF3DB8B342
 提交时间：2026-08-20T20:29:51.026+08:00
 完成时间：2026-08-20T21:16:43.073+08:00
 shots：1000
-实际执行的 QASM：`evidence/files/originq-hardware-bell.qasm`
-平台返回的原始结果：`evidence/files/originq-hardware-result.raw.json`
+电路 / QASM provenance：provider-exported logical/physical SVGs are the provider circuit record; `evidence/files/originq-hardware-bell.qasm` is a faithful reproducible reconstruction from the logical SVG and is not claimed as provider-exported QASM bytes.
+平台返回的原始结果：`evidence/files/originq-hardware-result.raw.csv`
+JSON 便读转录：`evidence/files/originq-hardware-result.raw.json`
 规范化结果：`evidence/files/originq-hardware-result.normalized.json`
 元数据：`evidence/files/originq-hardware-metadata.json`
 任务页截图：`evidence/files/originq-hardware-task.png`
@@ -76,8 +98,10 @@ Y-basis 结果：`evidence/files/originq_runtime_bell_ybasis-hardware-result.nor
 提交时间：2026-08-20T19:13:25+08:00
 完成时间：2026-08-20T19:15:15+08:00
 shots：N/A — SpinQ NMR task page and export expose ensemble projection probabilities; no discrete shot count was provided, so none is fabricated.
-实际执行的 QASM：`evidence/files/spinq-hardware-bell.qasm`
-平台返回的原始结果：`evidence/files/spinq-hardware-result.raw.json`
+Provider-exported raw QASM：`evidence/files/spinq-hardware-bell.raw.qasm.gz`
+Readable semantic QASM：`evidence/files/spinq-hardware-bell.qasm`
+Provider-original raw result：`evidence/files/spinq-hardware-result.raw.msgpack`
+Decoded JSON view：`evidence/files/spinq-hardware-result.raw.json`
 规范化结果：`evidence/files/spinq-hardware-result.normalized.json`
 元数据：`evidence/files/spinq-hardware-metadata.json`
 任务页截图：`evidence/files/spinq-hardware-task.png`
