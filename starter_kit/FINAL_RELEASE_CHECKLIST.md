@@ -5,7 +5,8 @@
 ## Candidate identity
 
 - Base UX candidate: `98d2ce03c927fab57ec12f7901652880c33afa2a`.
-- Current candidate SHA: filled after the final local commit below.
+- Current candidate identity: `git rev-parse HEAD`.
+- Final submitted identity: the exact 40-character SHA recorded in the Final Submission Issue.
 - Previous accepted fallback: Issue `#119`, SHA `ac0eb3b9f37b1b85f1d7b05ab83b8ee1a7331fd5`.
 - Required external actions: none performed. No push and no new Issue.
 - Theoretical maximum `112` is not an awarded score.
