@@ -10,8 +10,8 @@
 | 评分 / 风险区 | 60 秒内看什么 | Canonical evidence |
 |---|---|---|
 | L1 unified execution | 同一 OpenQASM 经 typed IR 输出到 SpinQ、OriginQ、Braket；官方 L1 evaluator | `evidence/files/l1-public-report.json`、`loomq/compiler/`、`emitters/`、`runners/` |
-| L2 objective robustness | 历史 Clean V2 保留 499/500；当前 candidate 的 `backend-40-real` 5/5、12 unseen paraphrases 12/12、balanced 6/6 | `evidence/L2_REAL_MODEL_VALIDATION_V2.md`、`FINAL_RELEASE_CHECKLIST.md`、agent tests |
-| L2 retained failures | 30-case smoke 为 28/30；一个 provider timeout 与一个 semantic backend-ID failure 原样保留 | `FINAL_RELEASE_CHECKLIST.md`、外部 smoke 输出不作为归档原始证据 |
+| L2 objective robustness | 历史 Clean V2 保留 499/500；当前 candidate 的 `backend-34-cloud-sim` post-fix 5/5（canonical `braket_cloud`）、`backend-40-real` 5/5（canonical `originq_wukong`）、old 12 unseen paraphrases 12/12、new cloud-simulator paraphrases 8/8、balanced 6/6；Agent service 10/10、focused timeout/campaign/watchdog 18/18 | `evidence/L2_REAL_MODEL_VALIDATION_V2.md`、`FINAL_RELEASE_CHECKLIST.md`、agent tests |
+| L2 retained failures | full 30-case smoke 为 29/30；provider timeout 为 0；唯一 retained failure 为 `backend-9-real` semantic failure。其后 3/3 是独立 diagnostic replay，标记为 stochastic residual，不覆盖原始 29/30，也不改写为 30/30 | `FINAL_RELEASE_CHECKLIST.md`、外部 smoke 输出不作为归档原始证据 |
 | L2 product interaction | Hero → H → CNOT → Bell → 运行 → QASM；首个 Bell 路径无需 API Key | `loomq/web/`、`evidence/WEB_QA.md` |
 | L3 hybrid compiler | Hybrid-QASM 经典控制与量子操作编译为 stock RISC-V，并保留量子操作顺序 | `loomq/hybrid/`、官方与本地 L3 tests |
 | Real hardware +10 | 两个 canonical 平台 SpinQ + OriginQ；job ID、实际 QASM、raw export、metadata、截图可追溯 | `evidence/HARDWARE_EVIDENCE_SUMMARY.md`、`evidence/files/` |
