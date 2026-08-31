@@ -54,6 +54,7 @@
   var bellStoryLine = document.querySelector('#bell-story-line');
   var quickActionButtons = [].slice.call(document.querySelectorAll('.quick-action'));
   var agentPromptCards = [].slice.call(document.querySelectorAll('.agent-prompt-card'));
+  var agentAvailabilityCopy = document.querySelector('#agent-availability-copy');
   var focusBackendAction = document.querySelector('#focus-backend-action');
   var scrollTutorials = [].slice.call(document.querySelectorAll('.scroll-tutorial'));
   var stepperSteps = [].slice.call(document.querySelectorAll('.stepper-step'));
@@ -73,6 +74,11 @@
   var isReduced = motionQuery.matches;
   var isStaticFile = window.location.protocol === 'file:';
   var localServiceUrl = 'http:' + '//127.0.0.1:8765/';
+  var isPublicShowcase = document.documentElement.dataset.publicShowcase === 'true';
+  var PUBLIC_REPLAY_LABEL_ZH = '公开展示模式 · 已验证结果回放';
+  var PUBLIC_REPLAY_LABEL_EN = 'Showcase replay · verified local simulation result';
+  var PUBLIC_MODE_STATUS_ZH = '公开展示模式 · 此处不会调用外部模型或量子机器';
+  var PUBLIC_MODE_STATUS_EN = 'Public showcase mode · no external model or quantum hardware is called';
   var backendAvailabilityReady = isStaticFile;
   var lastBackendAvailability = null;
   var hAnimationCancel = null;
@@ -539,6 +545,134 @@
     while (element.firstChild) element.removeChild(element.firstChild);
   }
 
+  var PUBLIC_BELL_QASM = 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\ncreg c[2];\nh q[0];\ncx q[0],q[1];\nmeasure q -> c;\n';
+  var PUBLIC_GHZ_QASM = 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[3];\ncreg c[3];\nh q[0];\ncx q[0],q[1];\ncx q[1],q[2];\nmeasure q -> c;\n';
+
+  function publicCircuitOperations(qubitCount, gateOperations) {
+    var operations = gateOperations.slice();
+    for (var qubit = 0; qubit < qubitCount; qubit += 1) {
+      operations.push({ type: 'measurement', qubit: qubit, cbit: qubit });
+    }
+    return operations;
+  }
+
+  function createPublicReplay(config) {
+    var requestedShots = Number(config.shots);
+    var shots = Number.isInteger(requestedShots) && requestedShots > 0 ? requestedShots : 1024;
+    var zeroCount = Math.ceil(shots / 2);
+    var oneCount = shots - zeroCount;
+    var counts = {};
+    counts[config.zeroState] = zeroCount;
+    counts[config.oneState] = oneCount;
+    return {
+      mode: 'public_replay',
+      publicMode: true,
+      publicLabelZh: PUBLIC_REPLAY_LABEL_ZH,
+      publicLabelEn: PUBLIC_REPLAY_LABEL_EN,
+      kind: 'circuit',
+      qasm: config.qasm,
+      circuit: {
+        qubit_count: config.qubitCount,
+        cbit_count: config.qubitCount,
+        operations: publicCircuitOperations(config.qubitCount, config.gates),
+        metrics: { logical_gates: config.gates.length, transpiled_gates: config.gates.length, depth: config.gates.length }
+      },
+      verification: {
+        checks: [
+          { label: 'OpenQASM 2.0 语法', status: 'passed' },
+          { label: '官方 12 门边界', status: 'passed' },
+          { label: '本地无噪声模拟', status: 'passed' },
+          { label: PUBLIC_REPLAY_LABEL_ZH, status: 'passed' }
+        ],
+        summary: 'Deterministic archived replay; no external service was called.',
+        reference_distribution: counts
+      },
+      result: {
+        backend: 'archived_local_simulator',
+        counts: counts,
+        shots: shots,
+        bit_order: 'little'
+      },
+      explanationZh: config.explanationZh,
+      explanationEn: config.explanationEn,
+      reply: config.explanationEn
+    };
+  }
+
+  function createPublicBellReplay(shots) {
+    return createPublicReplay({
+      shots: shots,
+      zeroState: '00',
+      oneState: '11',
+      qubitCount: 2,
+      qasm: PUBLIC_BELL_QASM,
+      gates: [
+        { type: 'gate', name: 'h', qubits: [0], params: [] },
+        { type: 'gate', name: 'cx', qubits: [0, 1], params: [] }
+      ],
+      explanationZh: '这是一份已验证的本地模拟结果回放：Bell 电路的结果按确定性的 00 / 11 分布展示。页面没有调用外部模型或量子机器。',
+      explanationEn: 'This is a verified local-simulation replay: the Bell circuit is shown with a deterministic 00 / 11 distribution. No external model or quantum hardware was called.'
+    });
+  }
+
+  function createPublicGhzReplay(shots) {
+    return createPublicReplay({
+      shots: shots,
+      zeroState: '000',
+      oneState: '111',
+      qubitCount: 3,
+      qasm: PUBLIC_GHZ_QASM,
+      gates: [
+        { type: 'gate', name: 'h', qubits: [0], params: [] },
+        { type: 'gate', name: 'cx', qubits: [0, 1], params: [] },
+        { type: 'gate', name: 'cx', qubits: [1, 2], params: [] }
+      ],
+      explanationZh: '这是一个归档教学示例回放：三比特 GHZ 电路按确定性的 000 / 111 分布展示。页面没有调用外部模型或量子机器。',
+      explanationEn: 'This is an archived teaching-example replay: the three-qubit GHZ circuit is shown with a deterministic 000 / 111 distribution. No external model or quantum hardware was called.'
+    });
+  }
+
+  function createPublicRecommendation() {
+    return {
+      mode: 'public_replay',
+      publicMode: true,
+      publicLabelZh: PUBLIC_REPLAY_LABEL_ZH,
+      publicLabelEn: PUBLIC_REPLAY_LABEL_EN,
+      kind: 'recommendation',
+      replyZh: PUBLIC_MODE_STATUS_ZH + '。本页只回放已经验证的示例；自由问题和后端选择需要在本地受控服务中根据真实能力表判断。',
+      replyEn: PUBLIC_MODE_STATUS_EN + '. This page only replays verified examples; free-form questions and backend choices require a controlled local service and its real capability table.',
+      explanationZh: '这是公开展示模式下的安全说明。',
+      explanationEn: 'This is the safe public-mode explanation.'
+    };
+  }
+
+  function createPublicAgentReplay(prompt, shots) {
+    var normalized = String(prompt || '').toLowerCase();
+    if (/ghz|三比特|three[- ]qubit/.test(normalized)) return createPublicGhzReplay(shots);
+    if (/bell|贝尔|cnot|h\s*\+/.test(normalized)) return createPublicBellReplay(shots);
+    return createPublicRecommendation();
+  }
+
+  function initPublicShowcase() {
+    if (!isPublicShowcase) return;
+    if (launchNotice) launchNotice.hidden = true;
+    setBilingualText(
+      document.querySelector('.api-optional-detail'),
+      PUBLIC_MODE_STATUS_ZH + '。',
+      PUBLIC_MODE_STATUS_EN + '.'
+    );
+    setBilingualText(
+      agentAvailabilityCopy,
+      '公开展示模式下，Agent 示例使用安全的归档回放；这里不会调用外部模型。',
+      'In public showcase mode, Agent examples use safe archived replays; no external model is called here.'
+    );
+    setBilingualText(
+      document.querySelector('.agent-capability-note'),
+      '公开展示模式 · 此处不会调用外部模型；可以选择页面中的归档示例。',
+      'Public showcase mode · no external model is called here; choose an archived example on this page.'
+    );
+  }
+
   function makeSvgEl(tag, className, text) {
     var element = document.createElementNS('http:' + '//www.w3.org/2000/svg', tag);
     if (className) element.setAttribute('class', className);
@@ -914,7 +1048,9 @@
     if (lastExperimentData) {
       if (lastExperimentData.kind === 'recommendation') showRecommendationWorkspace(lastExperimentData);
       else showCircuitWorkspace(lastExperimentData);
-      formStatus.textContent = lastExperimentData.mode === 'local_example'
+      formStatus.textContent = lastExperimentData.publicMode
+        ? pick(PUBLIC_MODE_STATUS_ZH + '。', PUBLIC_MODE_STATUS_EN + '.')
+        : lastExperimentData.mode === 'local_example'
         ? pick('本地 Bell 示例完成：没有调用模型；电路已检查并由 SDK 执行。', 'Local Bell experiment complete: no model was called; the circuit was checked and run through the SDK.')
         : pick('你的描述已整理成电路，检查后由 SDK 执行。', 'Your description became a circuit, passed checks, and ran through the SDK.');
     }
@@ -972,6 +1108,18 @@
   }
 
   function loadRuntimeStatus() {
+    if (isPublicShowcase) {
+      backendAvailabilityReady = true;
+      if (targetField) targetField.disabled = false;
+      if (launchNotice) launchNotice.hidden = true;
+      setRuntimeStatus(pick(PUBLIC_MODE_STATUS_ZH, PUBLIC_MODE_STATUS_EN), 'public');
+      setBilingualText(
+        backendAvailabilityCopy,
+        '公开展示模式：实验区使用确定性的归档回放，不连接本地接口、外部模型或量子机器。',
+        'Public showcase mode: the lab uses deterministic archived replays and connects to no local service, external model, or quantum hardware.'
+      );
+      return;
+    }
     if (isStaticFile) {
       launchNotice.hidden = false;
       setRuntimeStatus(pick('实验接口未启动 · 请通过 LoomQ 本地服务打开', 'Experiment service offline · open LoomQ through the local service'), 'offline');
@@ -1585,7 +1733,8 @@
         label = {
           'OpenQASM 2.0 语法': 'OpenQASM 2.0 syntax',
           '官方 12 门边界': 'Official 12-gate boundary',
-          '本地无噪声模拟': 'Local noiseless simulation'
+          '本地无噪声模拟': 'Local noiseless simulation',
+          '公开展示模式 · 已验证结果回放': PUBLIC_REPLAY_LABEL_EN
         }[label] || label.replace('真实本地后端完成：', 'Real local backend completed: ');
       }
       item.appendChild(makeEl('span', '', label));
@@ -1643,8 +1792,15 @@
     renderCircuit(data.circuit);
     renderVerification(data.verification);
     renderCounts(data.result);
-    explanation.textContent = data.explanation || pick('这次实验完成了，结果已经返回。', 'The experiment is complete and the result has been returned.');
-    resultBoundaryCopy.textContent = data.mode === 'local_example'
+    explanation.textContent = data.explanationZh
+      ? pick(data.explanationZh, data.explanationEn)
+      : (data.explanation || pick('这次实验完成了，结果已经返回。', 'The experiment is complete and the result has been returned.'));
+    resultBoundaryCopy.textContent = data.publicMode
+      ? pick(
+        '这是公开展示模式下的确定性结果回放；页面没有调用外部模型或量子机器。继续向下，看看已归档真机数据在 X、Y、Z 方向怎样描述同一个状态。',
+        'This is a deterministic public-mode replay; no external model or quantum hardware was called. Continue to see how archived hardware data describes the same state in X, Y, and Z.'
+      )
+      : data.mode === 'local_example'
       ? pick(
         '这是一种测量方向看到的结果。继续向下，看看已归档真机数据在 X、Y、Z 方向怎样描述同一个状态。',
         'This is one measurement view. Continue to see how archived hardware data describes the same state in X, Y, and Z.'
@@ -1655,9 +1811,12 @@
       );
     qasmCode.textContent = data.qasm || '';
     qasmDisclosure.open = true;
+    var replayLabel = data.publicMode
+      ? pick(data.publicLabelZh, data.publicLabelEn) + ' · '
+      : '';
     runMeta.textContent = currentLanguage === 'zh'
-      ? data.result.backend + ' · ' + data.result.shots + ' 次重复 · 位序：' + (data.result.bit_order === 'little' ? '低位在前（little-endian）' : data.result.bit_order)
-      : data.result.backend + ' · ' + data.result.shots + ' repetitions · bit order: ' + (data.result.bit_order === 'little' ? 'little-endian' : data.result.bit_order);
+      ? replayLabel + data.result.backend + ' · ' + data.result.shots + ' 次重复 · 位序：' + (data.result.bit_order === 'little' ? '低位在前（little-endian）' : data.result.bit_order)
+      : replayLabel + data.result.backend + ' · ' + data.result.shots + ' repetitions · bit order: ' + (data.result.bit_order === 'little' ? 'little-endian' : data.result.bit_order);
   }
 
   function showRecommendationWorkspace(data) {
@@ -1668,17 +1827,24 @@
     verificationList.hidden = true;
     verificationWrap.hidden = true;
     explanation.hidden = false;
-    explanation.textContent = pick('这是后端能力筛选与推荐。', 'This is a backend capability recommendation.');
+    explanation.textContent = data.explanationZh
+      ? pick(data.explanationZh, data.explanationEn)
+      : pick('这是后端能力筛选与推荐。', 'This is a backend capability recommendation.');
     recommendation.hidden = false;
-    recommendation.textContent = data.reply || data.explanation || '当前请求返回了后端能力推荐。';
-    runMeta.textContent = pick('后端能力表 · 程序化筛选', 'Backend capability table · programmatic filter');
+    recommendation.textContent = data.replyZh
+      ? pick(data.replyZh, data.replyEn)
+      : (data.reply || data.explanation || '当前请求返回了后端能力推荐。');
+    runMeta.textContent = (data.publicMode ? pick(data.publicLabelZh, data.publicLabelEn) + ' · ' : '')
+      + pick('后端能力表 · 程序化筛选', 'Backend capability table · programmatic filter');
   }
 
   function renderExperiment(data) {
     workspace.hidden = false;
     if (data.kind === 'recommendation') showRecommendationWorkspace(data);
     else showCircuitWorkspace(data);
-    formStatus.textContent = data.mode === 'local_example'
+    formStatus.textContent = data.publicMode
+      ? pick(PUBLIC_MODE_STATUS_ZH + '。', PUBLIC_MODE_STATUS_EN + '.')
+      : data.mode === 'local_example'
       ? pick('本地 Bell 示例完成：没有调用模型；电路已检查并由 SDK 执行。', 'Local Bell experiment complete: no model was called; the circuit was checked and run through the SDK.')
       : pick('你的描述已整理成电路，检查后由 SDK 执行。', 'Your description became a circuit, passed checks, and ran through the SDK.');
     workspace.scrollIntoView({ behavior: isReduced ? 'auto' : 'smooth', block: 'start' });
@@ -1715,6 +1881,31 @@
 
   form.addEventListener('submit', function (event) {
     event.preventDefault();
+    if (isPublicShowcase) {
+      var publicPrompt = promptField.value.trim();
+      var publicShots = Number(shotsField.value);
+      if (!publicPrompt) {
+        formStatus.textContent = pick('请先描述你想尝试的实验。', 'Describe the experiment you want to try first.');
+        formStatus.classList.add('is-error');
+        promptField.focus();
+        return;
+      }
+      if (!Number.isInteger(publicShots) || publicShots < 1 || publicShots > 8192) {
+        formStatus.textContent = pick('重复次数需要是 1 到 8192 之间的整数。', 'Repetitions must be a whole number from 1 to 8,192.');
+        formStatus.classList.add('is-error');
+        shotsField.focus();
+        return;
+      }
+      setBusy(true);
+      lastExperimentData = selectedExample === 'bell'
+        ? createPublicBellReplay(publicShots)
+        : createPublicAgentReplay(publicPrompt, publicShots);
+      renderExperiment(lastExperimentData);
+      setBusy(false);
+      if (workspace.hidden) runButton.focus();
+      else workspace.focus({ preventScroll: true });
+      return;
+    }
     if (isStaticFile) {
       launchNotice.hidden = false;
       formStatus.textContent = failureMessage(apiError('network_unavailable', ''));
@@ -1790,6 +1981,7 @@
     updateScrollTutorials();
   });
 
+  initPublicShowcase();
   initStepper();
   initSpotlightCards();
   initLineSidebar();
